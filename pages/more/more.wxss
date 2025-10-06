@@ -1,0 +1,100 @@
+/* 基础样式 */
+.container {
+  padding: 20rpx;
+  background-color: #f8f8f8;
+  min-height: 100vh;
+}
+
+/* 头部样式 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx 20rpx;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.more {
+  font-size: 28rpx;
+  color: #666;
+}
+
+/* 板块标题 */
+.section-header {
+  margin: 40rpx 0 20rpx 0;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  position: relative;
+  padding-left: 20rpx;
+}
+
+.section-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8rpx;
+  height: 30rpx;
+  background-color: #07c160;
+  border-radius: 4rpx;
+}
+
+/* 文章卡片 */
+.article-card {
+  background-color: #fff;
+  border-radius: 16rpx;
+  margin-bottom: 30rpx;
+  padding: 25rpx;
+  display: flex;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.article-image {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 12rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.article-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.article-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 15rpx;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.article-desc {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}

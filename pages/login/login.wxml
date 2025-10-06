@@ -1,0 +1,24 @@
+<view class="container">
+  <view class="login-box">
+    <view class="title">欢迎登录</view>
+
+    <view class="input-wrapper">
+     
+      <input type="text" placeholder="请输入用户名" bindinput="onUsernameInput" class="input" />
+    </view>
+
+    <view class="input-wrapper">
+  
+      <input type="password" placeholder="请输入密码" bindinput="onPasswordInput" class="input" />
+    
+    </view>
+    <text class="register-link" bindtap="onRegister">用户注册</text>
+    <view class="btn-group">
+      <button class="login-btn parent" bindtap="onLoginParent">家长登录</button>
+      <button class="login-btn doctor" bindtap="onLoginDoctor">医师登录</button>
+    </view>
+    <view class="btn-group">
+
+  </view>
+  </view>
+</view>

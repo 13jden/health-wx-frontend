@@ -1,0 +1,24 @@
+<view class="container">
+  <block wx:for="{{doctors}}" wx:key="id">
+    <view class="doctor-card">
+      <image class="avatar" src="{{item.avatar}}" />
+      <view class="info">
+        <text class="name">{{item.doctor_name}}</text>
+        <text class="title">{{item.title}} - {{item.department}}</text>
+        <text class="intro">{{item.intro}}</text>
+        <button class="btn" bindtap="onShowModal" data-id="{{item.id}}">预约</button>
+      </view>
+    </view>
+  </block>
+
+  <view wx:if="{{showModal}}" class="modal">
+    <view class="modal-content">
+      <text>选择预约时间</text>
+      <picker mode="date" bindchange="onTimeChange">
+        <view class="picker">时间: {{appointmentTime}}</view>
+      </picker>
+      <button class="confirm-btn" bindtap="onConfirmAppointment">确认预约</button>
+      <button class="cancel-btn" bindtap="onCancel">取消</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,92 @@
+<view class="container">
+  <!-- 孩子基本信息 -->
+  <view class="header">
+    <image class="avatar" src="{{child.avatar || (child.gender == '男' ? '/assets/icons/boy.png' : '/assets/icons/girl.png')}}" />
+    <view class="info">
+      <text class="name">{{child.name}}</text>
+      <text class="details">性别：{{child.gender}} | 年龄：{{age}} 岁</text>
+      <text class="birth">出生日期：{{child.birth_time}}</text>
+    </view>
+  </view>
+  <!-- <text class="name">{{child.name}}身高生长曲线</text>
+
+  <view class="charts">
+
+    <canvas canvas-id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-height" id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-height" class="charts" bindtouchstart="touchstart" bindtouchmove="touchmove" bindtouchend="touchend" />
+  </view>
+  <text class="name">{{child.name}}体重生长曲线</text>
+
+  <view class="charts">
+
+    <canvas canvas-id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-weight" id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-weight" class="charts" bindtouchstart="touchstart" bindtouchmove="touchmove" bindtouchend="touchend" />
+  </view> -->
+
+
+
+  <!-- 添加成长记录按钮 -->
+  <button wx:if="{{userType=='parent'}}" class="add-btn" bindtap="onAdd">新增成长信息</button>
+
+  <!-- 成长记录列表 -->
+  <view class="growth-list">
+    <block wx:for="{{growthRecords}}" wx:key="id">
+      <view class="growth-card">
+        <view class="growth-row">
+          <!-- 第一列：年龄、身高、体重 -->
+          <view class="column">
+            <text>年龄：{{item.age}} 岁 \t </text>
+            <text>身高：{{item.height}} cm \t </text>
+            <text>体重：{{item.weight}} kg \t </text>
+          </view>
+
+          <!-- 第二列：腰围、臀围、腰臀比 -->
+          <view class="column">
+            <text>腰围：{{item.waistline}} cm \t</text>
+            <text>臀围：{{item.hip}} cm \t</text>
+            <text>腰臀比：{{item.whr}} \t</text>
+          </view>
+          <!-- 底部添加创建时间 -->
+          <view class="create-time">
+            <text>记录时间：{{item.create_time}}</text>
+          </view>
+          <!-- 第三列：编辑和删除按钮 -->
+          <view wx:if="{{userType=='parent'}}" class="icon-group">
+            <image class="icon-btn" src="/assets/icons/edit.png" data-id="{{item.id}}" bindtap="onEdit" />
+            <image class="icon-btn" src="/assets/icons/delete.png" data-id="{{item.id}}" bindtap="onDelete" />
+          </view>
+        </view>
+
+
+      </view>
+    </block>
+  </view>
+
+
+
+  <!-- 弹出框 -->
+  <view wx:if="{{showModal}}" class="modal">
+    <view class="modal-content">
+      <text class="modal-title">发育预测</text>
+      <scroll-view class="form">
+        <text>年龄：</text>
+        <input type="number" value="{{form.age}}" placeholder="岁" bindinput="onInputChange" data-field="age" />
+        <text>身高：</text>
+        <input type="number" value="{{form.height}}" placeholder="cm" bindinput="onInputChange" data-field="height" />
+        <text>体重：</text>
+        <input type="number" value="{{form.weight}}" placeholder="kg" bindinput="onInputChange" data-field="weight" />
+
+
+
+        <text>腰围：</text>
+        <input type="number" value="{{form.waistline}}" placeholder="cm" bindinput="onInputChange" data-field="waistline" />
+        <text>臀围：</text>
+        <input type="number" value="{{form.hip}}" placeholder="cm" bindinput="onInputChange" data-field="hip" />
+
+      </scroll-view>
+      <view class="modal-actions">
+        <button bindtap="closeModal">取消</button>
+        <button bindtap="onSave" class="cancel-btn">保存</button>
+
+      </view>
+    </view>
+  </view>
+</view>

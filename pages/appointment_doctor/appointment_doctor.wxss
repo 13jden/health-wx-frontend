@@ -1,0 +1,98 @@
+.container {
+  padding: 20rpx;
+}
+
+.doctor-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.info {
+  flex: 1;
+}
+
+.name {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.title {
+  font-size: 28rpx;
+  color: #666;
+  margin-top: 10rpx;
+}
+
+.intro {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 10rpx;
+}
+
+.btn {
+  margin-top: 15rpx;
+  background: #007aff;
+  color: #fff;
+  padding: 10rpx 20rpx;
+  border-radius: 8rpx;
+  text-align: center;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 80%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 30rpx;
+  border-radius: 16rpx;
+  box-shadow: 0 8rpx 16rpx rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.picker {
+  margin-top: 10rpx;
+  padding: 10rpx;
+  background: #af347c;
+  border-radius: 8rpx;
+  width: 100%;
+  text-align: center;
+  font-size: 28rpx;
+  color: white;
+}
+
+.confirm-btn {
+  margin-top: 20rpx;
+  background: #28a745;
+  color: #fff;
+  padding: 12rpx 30rpx;
+  border-radius: 10rpx;
+  text-align: center;
+}
+
+.cancel-btn {
+  margin-top: 10rpx;
+  background: #dc3545;
+  color: #fff;
+  padding: 12rpx 30rpx;
+  border-radius: 10rpx;
+  text-align: center;
+}

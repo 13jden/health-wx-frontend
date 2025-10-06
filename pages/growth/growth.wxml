@@ -1,0 +1,40 @@
+
+
+    <view class="modal-content">
+      <text class="modal-title">发育预测</text>
+      <scroll-view class="form">
+        <text>FSH</text>
+        <input type="number" value="{{form.fsh}}" placeholder="FSH" bindinput="onInputChange" data-field="fsh" />
+        <text>LH</text>
+        <input type="number" value="{{form.lh}}" placeholder="FSH" bindinput="onInputChange" data-field="lh" />
+
+        <text>年龄：</text>
+        <input type="number" value="{{form.age}}" placeholder="岁" bindinput="onInputChange" data-field="age" />
+        <text>身高：</text>
+        <input type="number" value="{{form.height}}" placeholder="cm" bindinput="onInputChange" data-field="height" />
+        <text>体重：</text>
+        <input type="number" value="{{form.weight}}" placeholder="kg" bindinput="onInputChange" data-field="weight" />
+        
+
+        <text>腰围：</text>
+        <input type="number" value="{{form.waistline}}" placeholder="cm" bindinput="onInputChange" data-field="waistline" />
+        <text>臀围：</text>
+        <input type="number" value="{{form.hip}}" placeholder="cm" bindinput="onInputChange" data-field="hip" />
+        
+        <text>父亲身高：</text>
+        <input type="number" value="{{form.far_height}}" placeholder="cm" bindinput="onInputChange" data-field="far_height" />
+        <text>父亲体重：</text>
+        <input type="number" value="{{form.far_weight}}" placeholder="kg" bindinput="onInputChange" data-field="far_weight" />
+        <text>母亲身高：</text>
+        <input type="number" value="{{form.mo_height}}" placeholder="cm" bindinput="onInputChange" data-field="mo_height" />
+        <text>母亲体重：</text>
+        <input type="number" value="{{form.mo_weight}}" placeholder="kg" bindinput="onInputChange" data-field="mo_weight" />
+
+        <button class="add-btn" bindtap="onSave">预测</button>
+<text class="modal-title">结果：{{resultLabel}}</text>
+
+      </scroll-view>
+
+    </view>
+
+

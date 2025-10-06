@@ -1,0 +1,51 @@
+<view class="container">
+  <!-- 轮播图 -->
+  <swiper class="swiper" autoplay="true" interval="3000" duration="800" indicator-dots="true" circular="true">
+    <block wx:for="{{swiperList}}" wx:key="index">
+      <swiper-item>
+        <image src="{{item.imgUrl}}" class="swiper-image" data-url="{{item.link}}" bindtap="onSwiperTap"/>
+      </swiper-item>
+    </block>
+  </swiper>
+
+  <view class="header">
+    <text class="title">欢迎来到儿童健康成长系统</text>
+  </view>
+
+  <view class="menu">
+    <block wx:if="{{userType === 'parent'}}">
+      <navigator url="/pages/children/children" class="menu-item">
+        <image src="/assets/icons/baby.png" class="icon" />
+        <text class="menu-text">添加孩子</text>
+      </navigator>
+      <navigator url="/pages/change/change" class="menu-item">
+        <image src="/assets/icons/change.png" class="icon" />
+        <text class="menu-text">孩子切换</text>
+      </navigator>
+      <navigator url="/pages/appointment_doctor/appointment_doctor" class="menu-item">
+        <image src="/assets/icons/doctor.png" class="icon" />
+        <text class="menu-text">预约医师</text>
+      </navigator>
+      <navigator url="/pages/growth/growth" class="menu-item">
+        <image src="/assets/icons/growth.png" class="icon" />
+        <text class="menu-text">预测发育</text>
+      </navigator>
+      <navigator url="/pages/height/height" class="menu-item">
+        <image src="/assets/icons/height.png" class="icon" />
+        <text class="menu-text">身高曲线</text>
+      </navigator>
+      <navigator url="/pages/weight/weight" class="menu-item">
+        <image src="/assets/icons/weight.png" class="icon" />
+        <text class="menu-text">体重曲线</text>
+      </navigator>
+    </block>
+
+    <block wx:if="{{userType === 'doctor'}}">
+      <navigator url="/pages/appointment/appointment" class="menu-item">
+        <image src="/assets/icons/appointment.png" class="icon" />
+        <text class="menu-text">查看预约</text>
+      </navigator>
+    </block>
+  </view>
+</view>
+

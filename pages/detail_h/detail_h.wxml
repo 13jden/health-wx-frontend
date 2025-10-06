@@ -1,0 +1,35 @@
+<view class="container">
+  <view class="header">
+    <text class="title">帮助指南</text>
+  </view>
+ 
+  <view class="section">
+		<text class="section-title">功能介绍</text>
+    <text class="section-content">
+      本工具可记录孩子成长数据如0-18岁身高、体重等数据，自动生成生长发育水平等级和生长曲线显示生长发育趋势，帮助父母及早发现和纠正孩子生长发育的偏离。
+    </text>
+    <text class="section-note">
+      生长曲线依据九省/市儿童体格发育调查数据，参考自《中华儿科杂志》。
+    </text>
+  </view>
+  
+  <view class="section">
+    <text class="section-title">数据存储</text>
+    <text class="section-content">
+      生长记录数据如身高、体重、头围等数据存储在云端数据库，持久存在，可以跨终端查看和分享给家人。
+    </text>
+    <text class="section-content">
+      存储的数据会持久存在，关闭小程序，切换微信号，也不会影响存储的数据。但用户主动删除小程序，微信设置页清理缓存，系统清理缓存等操作会导致数据被清理，做上述动作前请谨慎,也可利用数据导出功能在上述动作前将睡眠打卡数据导出。
+    </text>
+  </view>
+
+	<view class="section">
+    <text class="section-title">关于生长曲线和百分位评价法</text>
+    <text class="section-content">
+      生长曲线图是对儿童进行生长监测的重要工具，有助于直观、形象地评价儿童的生长情况，通过连续观测可直接了解儿童生长的变化趋势，及时发现生长偏离的现象。
+    </text>
+    <text class="section-content">
+      生长曲线图中对生长发育的评价采用百分位法，通过统计大量儿童的生长数据，制定出标准百分位曲线。图上有三条标准百分位线，分别为97%、50%、3%。比如在身高曲线图中，97%表示此身高在100个同年龄的孩子中，按身高从低到高排队，排在第97位，即只比3个孩子低。
+    </text>
+  </view>
+</view>

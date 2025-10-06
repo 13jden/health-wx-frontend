@@ -1,0 +1,28 @@
+<view class="container">
+  <block wx:for="{{appointments}}" wx:key="id">
+    <view class="card">
+      <!-- 标题部分 -->
+      <view class="card-header">
+        <text class="title">{{item.parent_name}} - {{item.appointment_time}}</text>
+        <button bindtap="updateStatus" data-id="{{item.id}}" data-status="{{item.status}}">
+          {{item.status === 1 ? "完成" : "接受"}}
+        </button>
+      </view>
+
+      <!-- 孩子列表 -->
+      <view class="children-list">
+        <block wx:for="{{item.children}}" wx:key="childId">
+          <view class="child-card">
+            <image wx:if="{{item.gender == '男'}}" class="avatar" src="{{item.avatar || '/assets/icons/boy.png'}}" />
+            <image wx:if="{{item.gender == '女'}}" class="avatar" src="{{item.avatar || '/assets/icons/girl.png'}}" />
+            <view class="child-info">
+              <text>{{item.name}}（{{item.gender}}）</text>
+            </view>
+            <!-- 眼睛按钮，点击跳转详情 -->
+            <image class="icon-btn" src="/assets/icons/eye.png" data-id="{{item.id}}" bindtap="viewChildDetail" />
+          </view>
+        </block>
+      </view>
+    </view>
+  </block>
+</view>

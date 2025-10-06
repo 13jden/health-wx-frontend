@@ -1,0 +1,19 @@
+ <!-- 孩子基本信息 -->
+ <view class="header">
+    <image class="avatar" src="{{child.avatar || (child.gender == '男' ? '/assets/icons/boy.png' : '/assets/icons/girl.png')}}" />
+    <view class="info">
+      <text class="name">{{child.name}}</text>
+      <text class="details">性别：{{child.gender}} | 年龄：{{age}} 岁</text>
+      <text class="birth">出生日期：{{child.birth_time}}</text>
+    </view>
+  </view>
+  <text class="name">{{child.name}}体重生长曲线</text>
+
+  <view class="charts">
+
+    <canvas canvas-id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-weight" id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-weight" class="charts" bindtouchstart="touchstart" bindtouchmove="touchmove" bindtouchend="touchend" />
+  </view>
+    <!-- 了解生长曲线 -->
+<navigator url="/pages/detail_h/detail_h" class="learn-more">
+  了解生长曲线图和百分位 >
+</navigator>

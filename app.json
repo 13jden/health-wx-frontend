@@ -1,0 +1,53 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/profile/profile",
+    "pages/register/register",
+    "pages/appointment/appointment",
+    "pages/appointment_doctor/appointment_doctor",
+    "pages/growth/growth",
+    "pages/children/children",
+    "pages/details/details",
+    "pages/change/change",
+    "pages/height/height",
+    "pages/weight/weight",
+    "pages/detail_h/detail_h",
+    "pages/more/more"
+  ],
+  "tabBar": {
+    "color": "#333",
+    "selectedColor": "#d43c33",
+    "backgroundColor": "#fff",
+    "position": "bottom",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "主页",
+        "iconPath": "assets/icons/menu.png",
+        "selectedIconPath": "assets/icons/menu_selected.png"
+      },
+      {
+        "pagePath": "pages/more/more",
+        "text": "指南",
+        "iconPath": "assets/cart.png",
+        "selectedIconPath": "assets/cart.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "个人",
+        "iconPath": "assets/icons/user.png",
+        "selectedIconPath": "assets/icons/user_selected.png"
+      }
+    ]
+  },
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "Weixin",
+    "navigationBarBackgroundColor": "#ffffff"
+  },
+  "style": "v2",
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

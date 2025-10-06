@@ -1,0 +1,15 @@
+<view class="child-list">
+  <block wx:for="{{children}}" wx:key="id">
+    <view class="child-card" bindtap="selectChild" data-id="{{item.id}}">
+      <image class="child-icon" src="{{item.gender === '男' ? '/assets/icons/boy.png' : '/assets/icons/girl.png'}}" />
+      <view class="child-info">
+        <text class="child-name">{{item.name}}</text>
+        <text class="child-age">年龄: {{item.age}} 岁</text>
+      </view>
+      <!-- 单选框 -->
+      <view class="icon-group">
+        <radio value="{{item.id}}" checked="{{item.id === nowChildId}}" />
+      </view>
+    </view>
+  </block>
+</view>

@@ -1,0 +1,17 @@
+<view class="profile-container">
+  <image class="avatar" src="{{ userInfo.avatar }}" mode="circle"></image>
+  <text class="username">{{ userInfo.first_name }}{{ userInfo.last_name }}</text>
+  <text class="user-type">身份：{{ userType }}</text>
+
+  <view class="menu-list">
+    <block wx:for="{{menuItems}}" wx:key="index">
+      <view class="menu-item">
+        <image class="menu-icon" src="{{item.icon}}"></image>
+        <text class="menu-text">{{ item.text }}</text>
+        <image class="arrow-icon" src="/assets/icons/arrow-right.png"></image>
+      </view>
+    </block>
+  </view>
+
+  <button class="logout-btn" bindtap="onLogout">退出登录</button>
+</view>

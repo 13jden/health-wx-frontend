@@ -1,0 +1,85 @@
+/* 轮播图 */
+.swiper {
+  width: 100%;
+  height: 300rpx;
+  border-radius: 15rpx;
+  overflow: hidden;
+  margin-bottom: 20rpx;
+}
+
+.swiper-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 整体页面样式 */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx;
+  background: #f7f8fa;
+  min-height: 100vh;
+}
+
+/* 头部标题 */
+.header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+.title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 菜单 */
+.menu {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30rpx;
+  width: 100%;
+  max-width: 650rpx;
+}
+
+/* 菜单项 */
+.menu-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 180rpx;
+  height: 220rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.menu-item:hover {
+  transform: translateY(-6rpx);
+  box-shadow: 0 6rpx 15rpx rgba(0, 0, 0, 0.15);
+}
+
+.menu-item:active {
+  transform: scale(0.95);
+}
+
+/* 图标 */
+.icon {
+  width: 80rpx;
+  height: 80rpx;
+  margin-bottom: 10rpx;
+}
+
+/* 文字 */
+.menu-text {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}

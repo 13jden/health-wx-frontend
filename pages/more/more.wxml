@@ -1,0 +1,56 @@
+<view class="container">
+
+
+  <!-- 实用知识板块 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">实用知识和育儿心得</text>
+    </view>
+    
+    <!-- 文章卡片1 -->
+    <view class="article-card" bindtap="navigateToArticle" data-id="1">
+      <image class="article-image" src="/assets/more/1.jpg"></image>
+      <view class="article-content">
+        <text class="article-title">新国标护航儿童营养食品，别被"零添加"蒙蔽双眼：这份避坑指南请收好</text>
+        <text class="article-desc">近日，国家卫生健康委、国家市场监督管理总局公布了50项食品安全国家标准和9项标准修改单。在新规之下，家长们该如何为孩子挑选营养食品呢？</text>
+      </view>
+    </view>
+
+    <!-- 文章卡片2 -->
+    <view class="article-card" bindtap="navigateToArticle" data-id="2">
+			<image class="article-image" src="/assets/more/2.jpg"></image>
+      <view class="article-content">
+        <text class="article-title">什么是生长曲线图?如何使用曲线图监测生长发育，父母必看！</text>
+        <text class="article-desc">生长曲线图是通过统计众多健康儿童发育过程后描绘出来的标准百分位线。生长曲线图是观察儿童生长，进行身高、体重管理的重要工具。</text>
+      </view>
+    </view>
+
+		<!-- 文章卡片4 -->
+    <view class="article-card" bindtap="navigateToArticle" data-id="2">
+			<image class="article-image" src="/assets/more/4.jpg"></image>
+      <view class="article-content">
+        <text class="article-title">春季生长好时节：促进儿童长高的黄金时期</text>
+        <text class="article-desc">对于正处在成长阶段的儿童来说，春季是一个充满活力和生长的好时节。在这个时期，家长们应该抓住机会，为孩子们创造一个良好的生长环境，助力他们茁壮成长。</text>
+      </view>
+    </view>
+
+
+		<!-- 文章卡片5 -->
+    <view class="article-card" bindtap="navigateToArticle" data-id="2">
+			<image class="article-image" src="/assets/more/5.jpg"></image>
+      <view class="article-content">
+        <text class="article-title">如何养育一个开心的孩子？一个老母亲的独门秘籍，教你一招制胜！</text>
+        <text class="article-desc">真正的爱孩子，就要共情孩子。真正的爱孩子，就会从精神上拥抱孩子。不评判、不挑剔、不唠叨，不以爱孩子之名爱自己。</text>
+      </view>
+    </view>
+
+    <!-- 文章卡片3 -->
+    <view class="article-card" bindtap="navigateToArticle" data-id="3">
+      <image class="article-image" src="/assets/more/3.jpg"></image>
+      <view class="article-content">
+        <text class="article-title">春季生长吃什么：助力儿童长高的秘密武器</text>
+        <text class="article-desc">对于儿童来说，春季是生长发育的黄金时期。如何在这个季节为孩子提供充足的营养，这几种关键营养不可或缺。</text>
+      </view>
+    </view>
+  </view>
+</view>

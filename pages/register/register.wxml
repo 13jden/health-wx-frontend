@@ -1,0 +1,13 @@
+<view class="container">
+  <view class="register-box">
+    <view class="title">用户注册</view>
+
+    <input type="text" placeholder="姓名" bindinput="onNameInput" class="input" />
+    <input type="text" placeholder="账号" bindinput="onUsernameInput" class="input" />
+    <input type="password" placeholder="密码" bindinput="onPasswordInput" class="input" />
+    <input type="password" placeholder="再次输入密码" bindinput="onConfirmPasswordInput" class="input" />
+
+    <button class="register-btn" bindtap="onRegisterSubmit">提交注册</button>
+    <button class="back-btn" bindtap="onBackToLogin">返回登录</button>
+  </view>
+</view>
