@@ -3,58 +3,98 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  background: linear-gradient(to bottom, #eef2f3, #dfe6e9);
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
 }
 
 .register-box {
-  width: 85%;
-  padding: 30px;
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 30px;
   background: #fff;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  text-align: center;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .title {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   color: #333;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 30px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.input-label {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 8px;
+  font-weight: 500;
 }
 
 .input {
   width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  padding: 12px 15px;
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
   font-size: 16px;
+  background: #f8f9fa;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  min-height: 50px;
+  line-height: 1.4;
+}
+
+.input:focus {
+  border-color: #007AFF;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
 }
 
 .register-btn {
   width: 100%;
-  padding: 12px;
-  margin-top: 10px;
+  padding: 15px;
+  margin-top: 20px;
   font-size: 16px;
   color: white;
-  background-color: #007AFF;
+  background: linear-gradient(45deg, #007AFF, #5AC8FA);
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.register-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
 }
 
 .back-btn {
   width: 100%;
-  padding: 10px;
-  margin-top: 10px;
+  padding: 12px;
+  margin-top: 15px;
   font-size: 16px;
   color: #007AFF;
-  background: none;
-  border: 1px solid #007AFF;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
+  background: transparent;
+  border: 2px solid #007AFF;
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.back-btn:active {
+  background: rgba(0, 122, 255, 0.1);
 }

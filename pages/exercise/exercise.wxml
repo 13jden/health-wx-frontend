@@ -1,0 +1,26 @@
+<view class="container">
+  <view class="summary">
+    <view class="card">
+      <text class="label">今日消耗</text>
+      <text class="value">{{summary.totalCalories}} kcal</text>
+    </view>
+  </view>
+
+  <view class="list">
+    <block wx:for="{{records}}" wx:key="id">
+      <view class="item">
+        <view class="left">
+          <text class="type">{{item.type}}</text>
+          <text class="duration">{{item.durationMin}} 分钟</text>
+        </view>
+        <text class="cal">-{{item.calories}} kcal</text>
+      </view>
+    </block>
+  </view>
+
+  <view class="fab" bindlongpress="onLongPressRecord" bindtouchend="onStopRecord">
+    <text>按住 语音</text>
+  </view>
+</view>
+
+

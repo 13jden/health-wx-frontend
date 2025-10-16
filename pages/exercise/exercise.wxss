@@ -1,0 +1,14 @@
+.container { display: flex; flex-direction: column; min-height: 100vh; background: #f7f8fa; }
+.summary { display: flex; gap: 20rpx; padding: 20rpx; }
+.card { flex: 1; background: #fff; border-radius: 16rpx; padding: 20rpx; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06); }
+.label { color: #666; font-size: 26rpx; }
+.value { color: #111; font-size: 36rpx; font-weight: 600; }
+.list { padding: 0 20rpx; }
+.item { display: flex; justify-content: space-between; align-items: center; background: #fff; border-radius: 16rpx; padding: 20rpx; margin-bottom: 16rpx; }
+.left { display: flex; flex-direction: column; }
+.type { font-size: 28rpx; color: #333; }
+.duration { font-size: 24rpx; color: #888; }
+.cal { font-size: 28rpx; color: #e53935; font-weight: 600; }
+.fab { position: fixed; right: 32rpx; bottom: 40rpx; width: 140rpx; height: 140rpx; background: #1a73e8; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8rpx 20rpx rgba(26,115,232,0.4); }
+
+

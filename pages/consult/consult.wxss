@@ -1,0 +1,157 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f7f8fa;
+}
+
+.chat-list {
+  flex: 1;
+  height: calc(110vh - 0rpx);
+  padding: 10rpx 20rpx;
+  padding-bottom: 120rpx;
+}
+
+.msg {
+  display: flex;
+  width: 100%;
+  margin-bottom: 12rpx;
+  align-items: flex-start;
+}
+
+.msg {
+  justify-content: flex-start;
+}
+
+.bubble {
+  max-width: 560rpx;
+  padding: 16rpx 20rpx;
+  border-radius: 16rpx;
+  line-height: 1.6;
+  font-size: 28rpx;
+  background: #fff;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  margin: 0 12rpx;
+}
+
+/* Markdown样式支持 */
+.bubble rich-text {
+  display: block;
+}
+
+/* 代码块样式 */
+.bubble code {
+  background: #f5f5f5;
+  padding: 2rpx 6rpx;
+  border-radius: 4rpx;
+  font-family: 'Courier New', monospace;
+  font-size: 24rpx;
+}
+
+/* 列表样式 */
+.bubble ul, .bubble ol {
+  margin: 8rpx 0;
+  padding-left: 32rpx;
+}
+
+.bubble li {
+  margin: 4rpx 0;
+}
+
+/* 引用样式 */
+.bubble blockquote {
+  border-left: 4rpx solid #ddd;
+  margin: 8rpx 0;
+  padding-left: 16rpx;
+  color: #666;
+}
+
+/* 标题样式 */
+.bubble h1, .bubble h2, .bubble h3, .bubble h4, .bubble h5, .bubble h6 {
+  margin: 16rpx 0 8rpx 0;
+  font-weight: bold;
+}
+
+.bubble h1 { font-size: 36rpx; }
+.bubble h2 { font-size: 32rpx; }
+.bubble h3 { font-size: 30rpx; }
+.bubble h4 { font-size: 28rpx; }
+.bubble h5 { font-size: 26rpx; }
+.bubble h6 { font-size: 24rpx; }
+
+/* 段落样式 */
+.bubble p {
+  margin: 8rpx 0;
+}
+
+/* 强调样式 */
+.bubble strong {
+  font-weight: bold;
+}
+
+.bubble em {
+  font-style: italic;
+}
+
+.user-msg .bubble {
+  background: #DCF5FF;
+}
+
+.assistant-msg .bubble {
+  background: #fff;
+}
+
+/* 气泡与头像的间距控制 */
+.bubble {
+  margin-left: 12rpx;
+  margin-right: 0;
+}
+
+.avatar {
+  margin-left: 0;
+  margin-right: 12rpx;
+}
+
+.input-bar {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  background: #fff;
+  box-shadow: 0 -2rpx 8rpx rgba(0,0,0,0.06);
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+}
+
+.text-input {
+  flex: 1;
+  height: 72rpx;
+  background: #f2f3f5;
+  border-radius: 36rpx;
+  padding: 0 24rpx;
+  margin-right: 16rpx;
+}
+
+.send-btn {
+  height: 60rpx;
+  padding: 0 16rpx;
+  line-height: 60rpx;
+  border-radius: 30rpx;
+  background: #007AFF;
+  color: #fff;
+  font-size: 24rpx;
+  min-width: 80rpx;
+}
+
+

@@ -1,0 +1,32 @@
+<view class="container">
+  <view class="summary">
+    <view class="card">
+      <text class="label">今日摄入</text>
+      <text class="value">{{summary.totalCalories}} kcal</text>
+    </view>
+    <view class="card">
+      <text class="label">基础代谢</text>
+      <text class="value">{{summary.basalCalories}} kcal</text>
+    </view>
+  </view>
+
+  <view class="list">
+    <block wx:for="{{records}}" wx:key="id">
+      <view class="item">
+        <view class="left">
+          <text class="meal">{{item.mealType}}</text>
+          <text class="food">{{item.foodName}}</text>
+        </view>
+        <text class="cal">{{item.calories}} kcal</text>
+      </view>
+    </block>
+  </view>
+
+  <view class="fab" bindlongpress="onLongPressRecord" bindtouchend="onStopRecord">
+    <text>按住 语音</text>
+  </view>
+
+  <button class="add-btn" bindtap="onAdd">添加饮食</button>
+</view>
+
+

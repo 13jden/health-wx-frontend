@@ -9,10 +9,13 @@ App({
   },
   globalData: {
     userInfo: null,
-    nowChildId:null,
-    children:[],
-    userType:"doctor",
-    baseURL: "http://127.0.0.1:8000/",
-    apiBase: 'http://127.0.0.1:8000/' // 替换为你的电脑IP
+    tokenUser: null, // 存储登录后的用户信息
+    nowChildId: null,
+    children: [],
+    userType: "parent",
+    // baseURL: "http://127.0.0.1:8000/",
+    apiBase: 'http://115.190.53.97:8081/',
+    baseURL: 'http://115.190.53.97:8081/'
+    // apiBase: 'http://localhost:8081/'
   }
 })

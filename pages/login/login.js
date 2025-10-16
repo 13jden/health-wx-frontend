@@ -3,85 +3,129 @@ const { request } = require('../../utils/request.js');
 
 Page({
   data: {
-    username: "",
-    password: ""
+    openid: "",
+    showRegisterForm: false,
+    isRegistered: false
   },
 
-  // 获取输入的用户名
-  onUsernameInput(e) {
-    this.setData({
-      username: e.detail.value
+  onLoad() {
+    // 页面加载时自动尝试微信登录
+    this.wxLogin();
+  },
+
+  /**
+   * 微信登录
+   */
+  wxLogin() {
+    wx.login({
+      success: res => {
+        if (res.code) {
+          // 调用登录接口
+          console.log("openid:",res.code);
+          this.login(res.code);
+        } else {
+          console.error('获取 code 失败:', res.errMsg);
+          wx.showToast({
+            title: "微信登录失败",
+            icon: "none"
+          });
+        }
+      },
+      fail: err => {
+        console.error('微信登录失败:', err);
+        wx.showToast({
+          title: "微信登录失败",
+          icon: "none"
+        });
+      }
     });
   },
 
-  // 获取输入的密码
-  onPasswordInput(e) {
-    this.setData({
-      password: e.detail.value
-    });
-  },
-
-  // 处理家长登录
-  onLoginParent() {
-    this.login("parent");
-  },
-
-  // 处理医师登录
-  onLoginDoctor() {
-    this.login("doctor");
-  },
-
-  // 处理登录逻辑
-  async login(userType) {
+  /**
+   * 调用后端登录接口
+   */
+  async login(code) {
     try {
-      // 先设置一个临时的sessionid，这样request.js就不会重定向到登录页
-      wx.setStorageSync("sessionid", "temp_session_for_login");
-      
       const res = await request({
-        url: '/wxapp/login/',
+        url: '/api/auth/login',
         method: 'POST',
         data: {
-          username: this.data.username,
-          password: this.data.password,
-          user_type: userType
+          loginType: "WX", // 微信登录类型
+          openCode: code // 直接传递微信的code
         }
       });
 
-      if (res.data.code === 200) {
-        wx.setStorageSync("sessionid", res.data.sessionid);  // 存储 Session ID
-        wx.setStorageSync("csrf_token", res.data.csrf_token);
-        wx.removeStorage('userType')
-        wx.setStorageSync('userType', userType);
-        app.globalData.userType = userType;
+      if (res.data.code === 1) {
+        // 登录成功，保存用户信息
+        const tokenUser = res.data.data;
+        app.globalData.tokenUser = tokenUser;
+        wx.setStorageSync('tokenUser', tokenUser);
+        
+        this.setData({
+          isRegistered: true
+        });
+        
         wx.showToast({
           title: "登录成功",
           icon: "success"
         });
-        console.log("登录信息", res.data)  
-        console.log("userType", userType)  
-        // 跳转到对应的页
+        
+        // 跳转到首页
         wx.switchTab({
-          url: "/pages/profile/profile"  // 需要加  /
-        })
-        console.log("// 跳转到对应的页")
-      } else {
-        wx.showToast({
-          title: res.data.message,
-          icon: "error"
+          url: "/pages/index/index"
         });
+      } else {
+        // 登录失败，可能是未注册用户
+        if (res.statusCode === 401 || res.statusCode === 400) {
+          // 检查是否是用户不存在的错误
+          if (res.data.message && res.data.message.includes("用户不存在")) {
+            // 用户不存在，显示注册表单
+            this.setData({
+              openid: code, // 使用code作为openid
+              showRegisterForm: true
+            });
+          } else {
+            wx.showToast({
+              title: res.data.message || "登录失败",
+              icon: "error"
+            });
+          }
+        } else {
+          wx.showToast({
+            title: res.data.message || "登录失败",
+            icon: "error"
+          });
+        }
       }
     } catch (error) {
-      wx.showToast({
-        title: "网络错误",
-        icon: "none"
-      });
+      console.error('登录失败:', error);
+      if (error.statusCode === 401 || error.statusCode === 400) {
+        // 检查是否是用户不存在的错误
+        if (error.data && error.data.message && error.data.message.includes("用户不存在")) {
+          // 未注册用户，显示注册表单
+          this.setData({
+            openid: code,
+            showRegisterForm: true
+          });
+        } else {
+          wx.showToast({
+            title: error.data?.message || "登录失败",
+            icon: "none"
+          });
+        }
+      } else {
+        wx.showToast({
+          title: "网络错误",
+          icon: "none"
+        });
+      }
     }
   },
 
   // 跳转到注册页面
   onRegister() {
     wx.navigateTo({
-      url: "/pages/register/register"
+      url: `/pages/register/register?openid=${this.data.openid}`
     });
   }
 });

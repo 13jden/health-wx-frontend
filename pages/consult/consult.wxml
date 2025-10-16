@@ -1,0 +1,21 @@
+<view class="container">
+  <scroll-view class="chat-list" id="message-container" scroll-y="true" scroll-with-animation="true" scroll-into-view="{{scrollIntoView}}" lower-threshold="60" bindscrolltolower="onReachBottom" bindscroll="onChatScroll">
+    <block wx:for="{{messages}}" wx:key="index">
+      <view class="msg" wx:class="{{item.role === 'user' ? 'user-msg' : 'assistant-msg'}}">
+        <image class="avatar" src="{{item.role === 'user' ? '/assets/consult/user.png' : '/assets/consult/assistant.png'}}" mode="aspectFill" />
+        <view class="bubble">
+          <text wx:if="{{item.role === 'user'}}">{{item.content}}</text>
+          <rich-text wx:else nodes="{{item.htmlContent || item.content}}"></rich-text>
+        </view>
+      </view>
+    </block>
+    <view id="scroll-bottom" style="height: 1px;"></view>
+  </scroll-view>
+
+  <view class="input-bar">
+    <input class="text-input" placeholder="请描述孩子的症状或问题..." value="{{inputValue}}" bindinput="onInput" confirm-type="send" bindconfirm="onSend" bindkeyboardheightchange="onKeyboardHeightChange"/>
+    <button class="send-btn" bindtap="onSend" size="mini">发送</button>
+  </view>
+</view>
+
+

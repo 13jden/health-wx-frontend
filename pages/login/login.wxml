@@ -1,24 +1,21 @@
 <view class="container">
   <view class="login-box">
-    <view class="title">欢迎登录</view>
-
-    <view class="input-wrapper">
-     
-      <input type="text" placeholder="请输入用户名" bindinput="onUsernameInput" class="input" />
-    </view>
-
-    <view class="input-wrapper">
-  
-      <input type="password" placeholder="请输入密码" bindinput="onPasswordInput" class="input" />
+    <view class="title">欢迎使用健康管理小程序</view>
     
+    <view wx:if="{{!isRegistered && !showRegisterForm}}" class="loading-section">
+      <view class="loading-text">正在登录...</view>
+      <view class="loading-desc">请稍候，我们正在为您验证身份</view>
     </view>
-    <text class="register-link" bindtap="onRegister">用户注册</text>
-    <view class="btn-group">
-      <button class="login-btn parent" bindtap="onLoginParent">家长登录</button>
-      <button class="login-btn doctor" bindtap="onLoginDoctor">医师登录</button>
-    </view>
-    <view class="btn-group">
 
-  </view>
+    <view wx:if="{{showRegisterForm}}" class="register-section">
+      <view class="register-title">首次使用需要注册</view>
+      <view class="register-desc">请完善您的个人信息</view>
+      <button class="register-btn" bindtap="onRegister">立即注册</button>
+    </view>
+
+    <view wx:if="{{isRegistered}}" class="success-section">
+      <view class="success-text">登录成功！</view>
+      <view class="success-desc">正在跳转到首页...</view>
+    </view>
   </view>
 </view>
