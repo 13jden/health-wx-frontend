@@ -1,18 +1,25 @@
 <view class="container">
-  <!-- 轮播图 -->
-  <swiper class="swiper" autoplay="true" interval="3000" duration="800" indicator-dots="true" circular="true">
-    <block wx:for="{{swiperList}}" wx:key="index">
-      <swiper-item>
-        <image src="{{item.imgUrl}}" class="swiper-image" data-url="{{item.link}}" bindtap="onSwiperTap"/>
-      </swiper-item>
-    </block>
-  </swiper>
-
-  <view class="header">
-    <text class="title">欢迎来到儿童健康成长系统</text>
+  <!-- 加载提示 -->
+  <view wx:if="{{!isPageReady}}" class="loading-container">
+    <text>加载中...</text>
   </view>
 
-  <view class="menu">
+  <!-- 主要内容 -->
+  <view wx:else>
+    <!-- 轮播图 -->
+    <swiper class="swiper" autoplay="true" interval="3000" duration="800" indicator-dots="true" circular="true">
+      <block wx:for="{{swiperList}}" wx:key="index">
+        <swiper-item>
+          <image src="{{item.imgUrl}}" class="swiper-image" data-url="{{item.link}}" bindtap="onSwiperTap"></image>
+        </swiper-item>
+      </block>
+    </swiper>
+
+    <view class="header">
+      <text class="title">欢迎来到儿童健康成长系统</text>
+    </view>
+
+    <view class="menu">
     <block wx:if="{{userType === 'parent'}}">
       <navigator url="/pages/children/children" class="menu-item">
         <image src="/assets/icons/baby.png" class="icon" />
@@ -58,6 +65,6 @@
         <text class="menu-text">查看预约</text>
       </navigator>
     </block>
+    </view>
   </view>
 </view>
-

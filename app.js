@@ -30,8 +30,9 @@ App({
     children: [],
     userType: "parent",
     // baseURL: "http://127.0.0.1:8000/",
-    // apiBase: 'http://115.190.53.97:8081/',
-    baseURL: 'http://115.190.53.97:8081/',
-    apiBase: 'http://localhost:8081/'
+    // apiBase: 'http://localhost:8081/'
+    apiBase: 'http://115.190.53.97:8081/',
+    baseURL: 'http://115.190.53.97:8081/'
+    
   }
 })

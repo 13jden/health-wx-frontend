@@ -125,9 +125,9 @@ const streamRequest = (options) => {
   const tokenUser = wx.getStorageSync("tokenUser");
   
   return new Promise((resolve, reject) => {
-    // 确保apiBase存在
-    const apiBase = app.globalData.apiBase || 'http://localhost:8081/';
-    const baseUrl = apiBase.endsWith('/') ? apiBase.slice(0, -1) : apiBase;
+    // 实际的网络请求
+    // 确保URL格式正确，避免双斜杠
+    const baseUrl = app.globalData.apiBase.endsWith('/') ? app.globalData.apiBase.slice(0, -1) : app.globalData.apiBase;
     const requestUrl = options.url.startsWith('/') ? options.url : `/${options.url}`;
     
     const requestTask = wx.request({
@@ -135,16 +135,19 @@ const streamRequest = (options) => {
       method: options.method || "GET",
       header: {
         "Content-Type": "application/json; charset=utf-8",
-        "Accept": "text/event-stream",
-        "Authorization": tokenUser ? `Bearer ${tokenUser.token}` : ""
+        "Accept": "application/json; charset=utf-8",
+        "Authorization": tokenUser ? `Bearer ${tokenUser.token}` : "" // 使用JWT token
       },
       data: options.data || {},
-      enableChunked: true,
-      responseType: 'arraybuffer',
+      enableChunked: true, // 支持分块传输
+      responseType: 'arraybuffer', // 流式响应使用arraybuffer类型
       success(res) {
+        // 流式请求的最终结果通过onChunkReceived处理，这里resolve一个标识
         resolve({ isStreaming: true, statusCode: res.statusCode });
       },
       fail(err) {
+        console.error('请求失败:', err);
+        console.error('失败详情:', JSON.stringify(err));
         wx.showToast({
           title: "请求失败，请检查网络",
           icon: "none",
@@ -157,31 +160,108 @@ const streamRequest = (options) => {
     // 处理流式响应的分块数据
     if (requestTask && requestTask.onChunkReceived) {
       requestTask.onChunkReceived((chunkRes) => {
+        // 处理UTF-8编码的字节流数据
         if (chunkRes.data) {
           try {
-            let textData = utf8Decode(chunkRes.data);
+            let textData = '';
+            
+            // 更准确的类型检测
+            if (chunkRes.data instanceof ArrayBuffer) {
+              // 情况1: ArrayBuffer类型 - 转换为Uint8Array后解码
+              const bytes = new Uint8Array(chunkRes.data);
+              const decoder = new TextDecoder('utf-8');
+              textData = decoder.decode(bytes);
+            } else if (chunkRes.data instanceof Uint8Array || 
+                      (chunkRes.data.constructor && chunkRes.data.constructor.name === 'Uint8Array') ||
+                      (chunkRes.data.length !== undefined && typeof chunkRes.data === 'object' && !Array.isArray(chunkRes.data))) {
+              // 情况2: Uint8Array类型 - 直接解码UTF-8字节流
+              const decoder = new TextDecoder('utf-8');
+              textData = decoder.decode(chunkRes.data);
+            } else if (Array.isArray(chunkRes.data)) {
+              // 情况3: 数字数组类型 - 转换为Uint8Array后解码
+              const bytes = new Uint8Array(chunkRes.data);
+              const decoder = new TextDecoder('utf-8');
+              textData = decoder.decode(bytes);
+            } else if (typeof chunkRes.data === 'string') {
+              // 情况4: 字符串类型 - 直接使用，不进行额外解码
+              textData = chunkRes.data;
+            } else {
+              // 情况5: 其他类型，尝试转换为字符串
+              textData = String(chunkRes.data);
+            }
+            
+            // 创建包含解码后数据的响应对象
             const decodedChunkRes = {
               ...chunkRes,
               data: textData,
-              originalData: chunkRes.data
+              originalData: chunkRes.data // 保留原始数据
             };
             
+            // 调用用户提供的分块数据处理函数
             if (options.onChunkReceived && typeof options.onChunkReceived === 'function') {
               options.onChunkReceived(decodedChunkRes);
             }
           } catch (e) {
+            console.error('解码分块数据失败:', e);
+            // 如果解码失败，直接传递原始数据
             if (options.onChunkReceived && typeof options.onChunkReceived === 'function') {
               options.onChunkReceived(chunkRes);
             }
           }
         } else {
+          // 如果没有数据，直接传递
           if (options.onChunkReceived && typeof options.onChunkReceived === 'function') {
             options.onChunkReceived(chunkRes);
           }
         }
       });
+    } else {
+      console.warn('当前环境不支持onChunkReceived，降级为普通请求');
+      // 如果不支持流式传输，可以在这里处理降级逻辑
     }
   });
 };
 
-module.exports = { request, streamRequest };
+/**
+ * 处理流式响应数据
+ * 只去掉data:前缀，保持原始换行格式
+ */
+const processStreamData = (rawData) => {
+  if (!rawData) return '';
+  
+  // 只去掉data:前缀，保持原始换行格式
+  let processedData = rawData.replace(/^data:\s*/gm, '');
+  
+  // 去掉开头和结尾的空白字符
+  processedData = processedData.trim();
+  
+  return processedData;
+};
+
+/**
+ * 处理流式响应数据为HTML格式
+ * 只去掉data:前缀，保持原始换行格式，转换为HTML
+ */
+const processStreamDataToHtml = (rawData) => {
+  if (!rawData) return '';
+  
+  // 只去掉data:前缀，保持原始换行格式
+  let processedData = rawData.replace(/^data:\s*/gm, '');
+  
+  // 去掉开头和结尾的空白字符
+  processedData = processedData.trim();
+  
+  // 将 / 符号转换为换行符
+  processedData = processedData.replace(/\//g, '\n');
+  
+  // 转换为HTML格式，将换行转换为<br/>标签
+  let htmlContent = processedData.replace(/\n/g, '<br/>');
+  
+  // 减少多余的<br/>标签，避免间距过大
+  // 将连续的<br/>标签合并为最多1个
+  htmlContent = htmlContent.replace(/(<br\/?>){1,}/g, '<br/>');
+  
+  return htmlContent;
+};
+
+module.exports = { request, streamRequest, processStreamData, processStreamDataToHtml };

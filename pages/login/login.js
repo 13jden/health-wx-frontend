@@ -80,20 +80,17 @@ Page({
         app.globalData.userType = userType;
         wx.setStorageSync('userType', userType);
         
-        wx.showToast({
-          title: "登录成功",
-          icon: "success"
-        });
+        console.log('登录成功，准备跳转，userType:', userType);
         
-        // 根据用户角色跳转到不同页面
+        // 根据用户角色跳转到不同页面（不显示toast，直接跳转）
         if (tokenUser.role === 'DOCTOR') {
           // 医生跳转到profile页面
-          wx.switchTab({
+          wx.reLaunch({
             url: "/pages/profile/profile"
           });
         } else {
           // 普通用户和管理员跳转到首页
-          wx.switchTab({
+          wx.reLaunch({
             url: "/pages/index/index"
           });
         }

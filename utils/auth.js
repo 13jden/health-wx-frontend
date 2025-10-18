@@ -52,6 +52,7 @@ function clearLoginInfo() {
   wx.removeStorageSync('tokenUser');
   wx.removeStorageSync('sessionid');
   wx.removeStorageSync('csrf_token');
+  wx.removeStorageSync('consult_messages');
   wx.removeStorageSync('userType');
   
   // 清除全局数据

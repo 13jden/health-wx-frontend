@@ -1,5 +1,5 @@
 const app = getApp();
-const { request } = require('../../utils/request');
+const { streamRequest } = require('../../utils/request');
 const { parseMarkdownAdvanced } = require('../../utils/markdown');
 
 Page({
@@ -9,7 +9,10 @@ Page({
     streamBuffer: '', // 流式数据缓冲区
     updateTimer: null, // 节流更新定时器
     scrollIntoView: '',
-    autoScrollEnabled: true // 当用户上滑查看历史时暂停自动滚动
+    autoScrollEnabled: true, // 当用户上滑查看历史时暂停自动滚动
+    isStreaming: false, // 是否正在流式输出
+    userScrollTimer: null, // 用户滚动检测定时器
+    autoScrollTimer: null // 自动滚动定时器
   },
 
   onLoad() {
@@ -55,14 +58,26 @@ Page({
         return;
       }
       
-      // 直接累积到缓冲区
+      // 检查是否是完整内容的重复输出（流式传输最后通常会输出完整内容）
+      if (this.data.streamBuffer && textData.length > this.data.streamBuffer.length) {
+        // 如果新数据长度大于当前缓冲区，且包含已有内容，说明是重复输出
+        if (textData.includes(this.data.streamBuffer)) {
+          console.log('检测到重复内容，跳过处理');
+          return;
+        }
+      }
+      
+      // 累积原始数据到缓冲区
       this.data.streamBuffer += textData;
       
-      // 实时更新最后一条消息
+      // 实时更新最后一条消息（显示原始累积数据，不进行额外处理）
       this.updateLastMessage(this.data.streamBuffer);
       
       // 节流更新页面
       this.throttleUpdate();
+      
+      // 启动持续自动滚动
+      this.startContinuousScroll();
       
     } catch (e) {
       console.error('处理分块数据异常:', e);
@@ -71,10 +86,19 @@ Page({
 
   // 流式响应完成后的处理
   onStreamComplete() {
+    // 标记流式输出结束
+    this.setData({ isStreaming: false });
+    
+    // 停止持续自动滚动
+    this.stopContinuousScroll();
+    
     // 确保最终内容保存到storage
     const messages = [...this.data.messages];
     if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
       let finalContent = this.data.streamBuffer || messages[messages.length - 1].content;
+      
+      // 将 / 符号转换为换行符
+      finalContent = finalContent.replace(/\//g, '\n');
       
       // 清理多余的符号和空白字符
       finalContent = this.cleanContent(finalContent);
@@ -92,6 +116,9 @@ Page({
       // 保存到storage
       wx.setStorageSync('consult_messages', messages);
       this.setData({ messages });
+      
+      // 流式输出完成后，强制滚动到底部
+      this.scrollToBottom(true);
     }
   },
 
@@ -122,15 +149,18 @@ Page({
   updateLastMessage(content) {
     const messages = [...this.data.messages];
     if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
-      // 实时更新时不进行过度清理，保持流式效果
-      messages[messages.length - 1].content = content;
+      // 处理数据：将 / 符号转换为换行符
+      let processedContent = content.replace(/\//g, '\n');
+      
+      // 更新消息内容
+      messages[messages.length - 1].content = processedContent;
       
       // 重新生成HTML内容
       try {
-        messages[messages.length - 1].htmlContent = parseMarkdownAdvanced(content);
+        messages[messages.length - 1].htmlContent = parseMarkdownAdvanced(processedContent);
       } catch (e) {
         console.error('Markdown解析失败:', e);
-        messages[messages.length - 1].htmlContent = content; // 降级为纯文本
+        messages[messages.length - 1].htmlContent = processedContent; // 降级为纯文本
       }
       
       this.setData({ messages });
@@ -141,10 +171,12 @@ Page({
   throttleUpdate() {
     if (!this.data.updateTimer) {
       this.data.updateTimer = setTimeout(() => {
-        // 滚动到底部
-        this.scrollToBottom();
+        // 只有在自动滚动启用时才滚动到底部
+        if (this.data.autoScrollEnabled) {
+          this.scrollToBottom();
+        }
         this.data.updateTimer = null;
-      }, 300);
+      }, 200); // 减少延迟，提高响应速度
     }
   },
 
@@ -172,9 +204,22 @@ Page({
       return;
     }
     
-    // 只要用户产生滚动事件就认为可能在查看历史，先暂停自动滚动
-    if (this.data.autoScrollEnabled) {
-      this.setData({ autoScrollEnabled: false });
+    // 计算距离底部的距离
+    const distanceFromBottom = scrollHeight - scrollTop - height;
+    
+    // 如果用户滚动到距离底部较远的位置（超过200px），则暂停自动滚动
+    if (distanceFromBottom > 200) {
+      if (this.data.autoScrollEnabled) {
+        this.setData({ autoScrollEnabled: false });
+        console.log('用户滚动到距离底部较远位置，暂停自动滚动');
+      }
+    }
+    // 如果用户滚动到接近底部（小于100px），则恢复自动滚动
+    else if (distanceFromBottom < 100) {
+      if (!this.data.autoScrollEnabled && this.data.isStreaming) {
+        this.setData({ autoScrollEnabled: true });
+        console.log('用户滚动到接近底部，恢复自动滚动');
+      }
     }
   },
 
@@ -182,6 +227,34 @@ Page({
   onReachBottom() {
     if (!this.data.autoScrollEnabled) {
       this.setData({ autoScrollEnabled: true }, () => this.scrollToBottom(true));
+      console.log('用户触底，恢复自动滚动');
+    }
+  },
+
+  // 启动持续自动滚动
+  startContinuousScroll() {
+    // 如果已经在持续滚动，不重复启动
+    if (this.data.autoScrollTimer) {
+      return;
+    }
+    
+    // 只有在流式输出且自动滚动启用时才启动
+    if (this.data.isStreaming && this.data.autoScrollEnabled) {
+      this.data.autoScrollTimer = setInterval(() => {
+        if (this.data.isStreaming && this.data.autoScrollEnabled) {
+          this.scrollToBottom();
+        } else {
+          this.stopContinuousScroll();
+        }
+      }, 100); // 每100ms检查一次
+    }
+  },
+
+  // 停止持续自动滚动
+  stopContinuousScroll() {
+    if (this.data.autoScrollTimer) {
+      clearInterval(this.data.autoScrollTimer);
+      this.data.autoScrollTimer = null;
     }
   },
 
@@ -193,8 +266,12 @@ Page({
     this.appendMessage({ role: 'user', content });
     this.setData({ inputValue: '' });
 
-    // 2) 清空流式缓冲区
-    this.setData({ streamBuffer: '' });
+    // 2) 清空流式缓冲区，开始流式输出
+    this.setData({ 
+      streamBuffer: '',
+      isStreaming: true,
+      autoScrollEnabled: true // 开始新的对话时重新启用自动滚动
+    });
 
     // 3) 组织 ChatRequest：只发送最近5条有效的对话记录（在添加assistant消息之前）
     const allMessages = this.data.messages || [];
@@ -220,11 +297,10 @@ Page({
         attachments: []
       };
 
-      const res = await request({
+      const res = await streamRequest({
         url: `/chat/stream/text`, // 后端接口是 /stream/{type}，这里 type 为 "text"
         method: 'POST', // 使用 POST 因为需要 @RequestBody
         data: payload,
-        enableChunked: true, // 启用分块传输
         onChunkReceived: (chunkRes) => {
           // 处理分块数据
           this.handleChunkData(chunkRes);
@@ -246,6 +322,11 @@ Page({
       // 更新最后一条消息为错误信息
       this.updateLastMessage('发送失败，请重试');
       this.onStreamComplete();
+    } finally {
+      // 确保流式状态被重置
+      this.setData({ isStreaming: false });
+      // 停止持续自动滚动
+      this.stopContinuousScroll();
     }
   }
 });

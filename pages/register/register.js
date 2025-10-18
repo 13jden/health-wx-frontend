@@ -92,9 +92,7 @@ Page({
 
         // 注册成功后跳转到登录页面
         setTimeout(() => {
-          wx.redirectTo({
-            url: "/pages/login/login"
-          });
+          wx.navigateBack();
         }, 1500);
       } else {
         wx.showToast({

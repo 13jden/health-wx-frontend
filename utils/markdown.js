@@ -157,10 +157,36 @@ function parseMarkdownAdvanced(text) {
   // 链接
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
   
+  // 表格处理（Markdown表格）
+  html = html.replace(/\|(.+)\|\s*\n\|[-\s|:]+\|\s*\n((?:\|.+\|\s*\n?)*)/g, function(match, header, rows) {
+    const headerCells = header.split('|').map(cell => cell.trim()).filter(cell => cell);
+    const rowLines = rows.trim().split('\n').filter(line => line.trim());
+    
+    let tableHtml = '<table><thead><tr>';
+    headerCells.forEach(cell => {
+      tableHtml += '<th>' + cell + '</th>';
+    });
+    tableHtml += '</tr></thead><tbody>';
+    
+    rowLines.forEach(line => {
+      const cells = line.split('|').map(cell => cell.trim()).filter(cell => cell);
+      if (cells.length > 0) {
+        tableHtml += '<tr>';
+        cells.forEach(cell => {
+          tableHtml += '<td>' + cell + '</td>';
+        });
+        tableHtml += '</tr>';
+      }
+    });
+    
+    tableHtml += '</tbody></table>';
+    return tableHtml;
+  });
+  
   // 段落处理（将连续的非空行包装为段落），并忽略多余空行
   html = html.replace(/([^\n]*)(\n|$)/g, function(match, content, newline) {
     // 跳过已经是HTML标签的行
-    if (content.match(/^<(h[1-6]|ul|ol|li|blockquote|pre|code)/)) {
+    if (content.match(/^<(h[1-6]|ul|ol|li|blockquote|pre|code|table)/)) {
       return match;
     }
     // 跳过空白行
@@ -170,7 +196,12 @@ function parseMarkdownAdvanced(text) {
     return '<p>' + content + '</p>' + (newline || '');
   });
   
-  // 换行处理：段落间空行保留为一个 <br/>（已压缩）
+  // 换行处理：减少多余的<br/>标签
+  // 将连续的<br/>标签合并为最多1个
+  html = html.replace(/(<br\/?>){2,}/g, '<br/>');
+  // 段落间只保留一个换行
+  html = html.replace(/(<\/p>)\s*(<br\/?>)*\s*(<p>)/g, '$1<br/>$3');
+  // 其他换行处理
   html = html.replace(/\n/g, '<br/>');
   
   return html;
