@@ -45,87 +45,78 @@ Page({
    * 调用后端登录接口
    */
   async login(code) {
+    console.log("开始登录，code:", code);
     try {
       const res = await request({
         url: '/api/auth/login',
         method: 'POST',
         data: {
-          loginType: "WX", // 微信登录类型
-          openCode: code // 直接传递微信的code
+          loginType: "WX",
+          openCode: code
         }
       });
 
-      if (res.data.code === 1) {
+      console.log("登录响应:", res);
+      
+      // 检查状态码
+      if (res.statusCode === 400) {
+        // 400状态码表示用户不存在，显示注册表单
+        console.log("用户不存在，显示注册表单");
+        this.setData({
+          openid: code,
+          showRegisterForm: true
+        });
+        return;
+      }
+      
+      if (res.statusCode === 200 && res.data && res.data.code === 1) {
         // 登录成功，保存用户信息
         const tokenUser = res.data.data;
         app.globalData.tokenUser = tokenUser;
         wx.setStorageSync('tokenUser', tokenUser);
         
-        this.setData({
-          isRegistered: true
-        });
+        // 保存用户类型到全局数据和本地存储
+        const userType = tokenUser.role || 'USER';
+        app.globalData.userType = userType;
+        wx.setStorageSync('userType', userType);
         
         wx.showToast({
           title: "登录成功",
           icon: "success"
         });
         
-        // 跳转到首页
-        wx.switchTab({
-          url: "/pages/index/index"
-        });
-      } else {
-        // 登录失败，可能是未注册用户
-        if (res.statusCode === 401 || res.statusCode === 400) {
-          // 检查是否是用户不存在的错误
-          if (res.data.message && res.data.message.includes("用户不存在")) {
-            // 用户不存在，显示注册表单
-            this.setData({
-              openid: code, // 使用code作为openid
-              showRegisterForm: true
-            });
-          } else {
-            wx.showToast({
-              title: res.data.message || "登录失败",
-              icon: "error"
-            });
-          }
+        // 根据用户角色跳转到不同页面
+        if (tokenUser.role === 'DOCTOR') {
+          // 医生跳转到profile页面
+          wx.switchTab({
+            url: "/pages/profile/profile"
+          });
         } else {
-          wx.showToast({
-            title: res.data.message || "登录失败",
-            icon: "error"
+          // 普通用户和管理员跳转到首页
+          wx.switchTab({
+            url: "/pages/index/index"
           });
         }
+      } else {
+        // 其他错误
+        wx.showToast({
+          title: res.data?.message || "登录失败",
+          icon: "error"
+        });
       }
     } catch (error) {
       console.error('登录失败:', error);
-      if (error.statusCode === 401 || error.statusCode === 400) {
-        // 检查是否是用户不存在的错误
-        if (error.data && error.data.message && error.data.message.includes("用户不存在")) {
-          // 未注册用户，显示注册表单
-          this.setData({
-            openid: code,
-            showRegisterForm: true
-          });
-        } else {
-          wx.showToast({
-            title: error.data?.message || "登录失败",
-            icon: "none"
-          });
-        }
-      } else {
-        wx.showToast({
-          title: "网络错误",
-          icon: "none"
-        });
-      }
+      wx.showToast({
+        title: "网络错误",
+        icon: "none"
+      });
     }
   },
 
   // 跳转到注册页面
   onRegister() {
     wx.navigateTo({
-      url: `/pages/register/register?openid=${this.data.openid}`
+      url: `/pages/register/register`
     });
   }
 });

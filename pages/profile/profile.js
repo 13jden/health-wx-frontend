@@ -1,11 +1,10 @@
 const app = getApp();
-const { request } = require('../../utils/request.js');
+const { requireLogin, clearLoginInfo, getCurrentUser } = require('../../utils/auth.js');
 
 Page({
   data: {
     userInfo: {
-      first_name: "",
-      last_name: "",
+      username: "",
       avatar: "/assets/avatar/default-avatar.png"
     },
     userType : "",
@@ -20,78 +19,64 @@ Page({
     ]
   },
   onShow() {
-    this.getUserProfile();
+    // 检查登录状态
+    if (!requireLogin()) {
+      return;
+    }
+    this.loadUserInfo();
   },
   onLoad() {
-    this.getUserProfile();
+    // 检查登录状态
+    if (!requireLogin()) {
+      return;
+    }
+    this.loadUserInfo();
   },
 
-  // 获取用户信息
-  async getUserProfile() {
-    try {
-      const res = await request({
-        url: '/wxapp/user/profile/',
-        method: 'GET'
-      });
-
-      if (res.data.code === 200) {
-        const userType = wx.getStorageSync("userType")
-        let userTypeStr
-        if ( userType == "parent"){
-           userTypeStr="家长";
-        } else {
-           userTypeStr="医生";
-        }
-        if (res.data.data.avatar && res.data.data.avatar.startsWith("/media/avatar/")){
-          res.data.data.avatar = app.globalData.baseURL+ res.data.data.avatar
-        }
-        this.setData({
-          userInfo: res.data.data,
-          userType: userTypeStr
-        });
-        app.globalData.userInfo = res.data.data
-        
-      } else {
-        wx.showToast({
-          title: "获取信息失败",
-          icon: "error"
-        });
-        wx.navigateTo({
-          url:  "/pages/login/login"  // 需要加  /
-        })
-      }
-    } catch (error) {
-      wx.showToast({
-        title: "网络错误",
-        icon: "none"
-      });
+  // 加载用户信息
+  loadUserInfo() {
+    const tokenUser = getCurrentUser();
+    const userType = wx.getStorageSync("userType");
+    let userTypeStr;
+    
+    // 根据role显示不同的身份
+    if (userType === "USER") {
+      userTypeStr = "家长";
+    } else if (userType === "DOCTOR") {
+      userTypeStr = "医生";
+    } else if (userType === "ADMIN") {
+      userTypeStr = "管理员";
+    } else {
+      userTypeStr = "用户";
     }
+    
+    this.setData({
+      userInfo: {
+        username: tokenUser.username || "",
+        avatar: tokenUser.avatar || "/assets/avatar/default-avatar.png"
+      },
+      userType: userTypeStr
+    });
+    
+    app.globalData.userInfo = tokenUser;
   },
 
   // 退出登录
-  async onLogout() {
-    try {
-      await request({
-        url: '/wxapp/user/logout/',
-        method: 'POST'
-      });
-      
-      wx.removeStorage("sessionid");
-      wx.removeStorage("csrf_token");
-      wx.removeStorage("userType");
-
+  onLogout() {
+    // 使用统一的清除登录信息函数
+    clearLoginInfo();
+    
+    wx.showToast({
+      title: '已退出登录',
+      icon: 'success',
+      duration: 1500
+    });
+    
+    // 延迟跳转，让用户看到提示
+    setTimeout(() => {
       wx.redirectTo({
         url: "/pages/login/login"
       });
-    } catch (error) {
-      // 即使网络请求失败，也要清除本地存储并跳转到登录页
-      wx.removeStorage("sessionid");
-      wx.removeStorage("csrf_token");
-      wx.removeStorage("userType");
-
-      wx.redirectTo({
-        url: "/pages/login/login"
-      });
-    }
+    }, 1500);
   }
 });

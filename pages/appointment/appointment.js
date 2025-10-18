@@ -1,4 +1,5 @@
 const { request } = require("../../utils/request");
+const { requireLogin } = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -7,6 +8,10 @@ Page({
   },
 
   onLoad() {
+    // 检查登录状态
+    if (!requireLogin()) {
+      return;
+    }
     this.getAppointments();
   },
 

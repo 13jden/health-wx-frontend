@@ -1,7 +1,6 @@
 <view class="profile-container">
   <image class="avatar" src="{{ userInfo.avatar }}" mode="circle"></image>
-  <text class="username">{{ userInfo.first_name }}{{ userInfo.last_name }}</text>
-  <text class="user-type">身份：{{ userType }}</text>
+  <text class="username">{{ userType }}：{{ userInfo.username }}</text>
 
   <view class="menu-list">
     <block wx:for="{{menuItems}}" wx:key="index">

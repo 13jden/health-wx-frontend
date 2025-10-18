@@ -1,4 +1,5 @@
 const app = getApp();
+const { requireLogin } = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -17,12 +18,20 @@ Page({
   }
 },
   onLoad() {
+    // 检查登录状态
+    if (!requireLogin()) {
+      return;
+    }
     // 获取全局的 userType，这里模拟从后台获取
     this.setUserType();
     this.getChildrenList()
   },
 
   onShow() {
+    // 检查登录状态
+    if (!requireLogin()) {
+      return;
+    }
     // 每次显示时，检查并更新 userType
     this.setUserType();
   },

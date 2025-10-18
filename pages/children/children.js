@@ -1,4 +1,6 @@
 const { request } = require("../../utils/request");
+const { requireLogin } = require('../../utils/auth.js');
+
 Page({
   data: {
     showChildModal: false,
@@ -13,6 +15,10 @@ Page({
 
   // 获取孩子列表
   onLoad() {
+    // 检查登录状态
+    if (!requireLogin()) {
+      return;
+    }
     this.getChildrenList();
   },
 
