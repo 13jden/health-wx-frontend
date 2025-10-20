@@ -103,7 +103,98 @@
   width: 50rpx;
   height: 50rpx;
   cursor: pointer;
-}.charts {
+}
+
+.charts {
   width: 700rpx;
   height: 400rpx;
+}
+
+/* 表单滚动容器 */
+.form-scroll {
+  max-height: 500rpx;
+  margin: 20rpx 0;
+}
+
+/* 表单样式 */
+.form {
+  padding: 0;
+}
+
+.form text {
+  display: block;
+  margin-top: 20rpx;
+  margin-bottom: 10rpx;
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.form input {
+  width: 100%;
+  padding: 30rpx 20rpx;
+  border: 2rpx solid #ddd;
+  border-radius: 8rpx;
+  margin-top: 10rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+  min-height: 80rpx;
+  line-height: 1.4;
+}
+
+.picker-text {
+  padding: 30rpx 20rpx;
+  border: 2rpx solid #ddd;
+  border-radius: 8rpx;
+  margin-top: 10rpx;
+  font-size: 28rpx;
+  color: #333;
+  background: #fff;
+  min-height: 80rpx;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+}
+
+.save-btn {
+  background: #007aff;
+  color: #fff;
+}
+
+/* 生长记录卡片样式 */
+.growth-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 5rpx;
+}
+
+.column text {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.4;
+}
+
+.create-time {
+  margin-top: 10rpx;
+  padding-top: 10rpx;
+  border-top: 1rpx solid #eee;
+}
+
+.create-time text {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.icon-group {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 10rpx;
+  justify-content: flex-end;
 }

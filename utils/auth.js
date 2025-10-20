@@ -46,6 +46,35 @@ function getCurrentUser() {
 }
 
 /**
+ * 获取当前用户详细信息（包含ID）
+ * @returns {Promise<Object|null>} 用户详细信息
+ */
+async function getCurrentUserDetail() {
+  // 首先检查本地存储的用户信息是否包含ID
+  const tokenUser = getCurrentUser();
+  if (tokenUser && tokenUser.id) {
+    console.log('使用本地存储的用户信息:', tokenUser);
+    return tokenUser;
+  }
+  
+  // 如果本地没有ID，尝试从服务器获取
+  const { request } = require('./request.js');
+  try {
+    const res = await request({
+      url: '/api/auth/me',
+      method: 'GET'
+    });
+    if (res.statusCode === 200 && res.data && res.data.code === 1) {
+      return res.data.data;
+    }
+    return null;
+  } catch (error) {
+    console.error('获取用户详情失败:', error);
+    return null;
+  }
+}
+
+/**
  * 清除登录信息
  */
 function clearLoginInfo() {
@@ -67,5 +96,6 @@ module.exports = {
   checkLoginStatus,
   requireLogin,
   getCurrentUser,
+  getCurrentUserDetail,
   clearLoginInfo
 };

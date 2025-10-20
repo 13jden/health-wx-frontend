@@ -31,22 +31,22 @@
     <block wx:for="{{growthRecords}}" wx:key="id">
       <view class="growth-card">
         <view class="growth-row">
-          <!-- 第一列：年龄、身高、体重 -->
+          <!-- 第一列：身高、体重、BMI -->
           <view class="column">
-            <text>年龄：{{item.age}} 岁 \t </text>
-            <text>身高：{{item.height}} cm \t </text>
-            <text>体重：{{item.weight}} kg \t </text>
+            <text>身高：{{item.height}} cm</text>
+            <text>体重：{{item.weight}} kg</text>
+            <text>BMI：{{item.bmi}}</text>
           </view>
 
-          <!-- 第二列：腰围、臀围、腰臀比 -->
+          <!-- 第二列：骨龄、检测日期 -->
           <view class="column">
-            <text>腰围：{{item.waistline}} cm \t</text>
-            <text>臀围：{{item.hip}} cm \t</text>
-            <text>腰臀比：{{item.whr}} \t</text>
+            <text>骨龄：{{item.boneAge}} 岁</text>
+            <text>检测日期：{{item.testDate}}</text>
           </view>
+          
           <!-- 底部添加创建时间 -->
           <view class="create-time">
-            <text>记录时间：{{item.create_time}}</text>
+            <text>记录时间：{{item.createTime}}</text>
           </view>
           <!-- 第三列：编辑和删除按钮 -->
           <view wx:if="{{userType=='parent'}}" class="icon-group">
@@ -66,26 +66,25 @@
   <view wx:if="{{showModal}}" class="modal">
     <view class="modal-content">
       <text class="modal-title">发育预测</text>
-      <scroll-view class="form">
-        <text>年龄：</text>
-        <input type="number" value="{{form.age}}" placeholder="岁" bindinput="onInputChange" data-field="age" />
-        <text>身高：</text>
-        <input type="number" value="{{form.height}}" placeholder="cm" bindinput="onInputChange" data-field="height" />
-        <text>体重：</text>
-        <input type="number" value="{{form.weight}}" placeholder="kg" bindinput="onInputChange" data-field="weight" />
-
-
-
-        <text>腰围：</text>
-        <input type="number" value="{{form.waistline}}" placeholder="cm" bindinput="onInputChange" data-field="waistline" />
-        <text>臀围：</text>
-        <input type="number" value="{{form.hip}}" placeholder="cm" bindinput="onInputChange" data-field="hip" />
-
+      <scroll-view class="form-scroll" scroll-y="true">
+        <view class="form">
+          <text>身高：</text>
+          <input type="digit" value="{{form.height}}" placeholder="cm" bindinput="onInputChange" data-field="height" />
+          <text>体重：</text>
+          <input type="digit" value="{{form.weight}}" placeholder="kg" bindinput="onInputChange" data-field="weight" />
+          <text>BMI指数：</text>
+          <input type="digit" value="{{form.bmi}}" placeholder="自动计算或手动输入" bindinput="onInputChange" data-field="bmi" />
+          <text>骨龄：</text>
+          <input type="digit" value="{{form.boneAge}}" placeholder="岁" bindinput="onInputChange" data-field="boneAge" />
+          <text>检测日期：</text>
+          <picker mode="date" value="{{form.testDate}}" start="2020-01-01" end="2030-12-31" bindchange="onDateChange">
+            <view class="picker-text">{{form.testDate || '请选择检测日期'}}</view>
+          </picker>
+        </view>
       </scroll-view>
       <view class="modal-actions">
         <button bindtap="closeModal">取消</button>
-        <button bindtap="onSave" class="cancel-btn">保存</button>
-
+        <button bindtap="onSave" class="save-btn">保存</button>
       </view>
     </view>
   </view>

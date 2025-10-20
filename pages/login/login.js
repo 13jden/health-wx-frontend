@@ -90,9 +90,12 @@ Page({
           });
         } else {
           // 普通用户和管理员跳转到首页
-          wx.reLaunch({
-            url: "/pages/index/index"
-          });
+          // 使用setTimeout确保数据完全保存后再跳转
+          setTimeout(() => {
+            wx.reLaunch({
+              url: "/pages/index/index"
+            });
+          }, 100);
         }
       } else {
         // 其他错误

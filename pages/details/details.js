@@ -1,4 +1,6 @@
 const { request } = require("../../utils/request");
+const childApi = require("../../api/child");
+const growthApi = require("../../api/growth");
 import uCharts from '../../js_sdk/u-charts/u-charts.js';
 const app = getApp();
 var uChartsInstance = {};
@@ -24,10 +26,27 @@ Page({
    
   },
   onLoad(options) {
-    this.setData({ childId: options.childId });
+    // 优先使用传入的childId，如果没有则从storage获取第一个孩子
+    let childId = options.childId;
+    
+    if (!childId) {
+      // 从storage获取第一个孩子
+      const storageChildren = wx.getStorageSync('children');
+      const storageCurrentId = wx.getStorageSync('currentChildId');
+      
+      if (storageChildren && storageChildren.length > 0) {
+        childId = storageCurrentId || storageChildren[0].id;
+        console.log('从storage获取childId:', childId);
+      } else {
+        childId = app.globalData.nowChildId;
+        console.log('从全局数据获取childId:', childId);
+      }
+    }
+    
+    console.log('Details页面childId:', childId);
+    this.setData({ childId: childId });
     this.fetchChildInfo();
     this.fetchGrowthRecords();
-
   },
 
   fetchChildInfo() {
@@ -72,18 +91,50 @@ Page({
       // });
     } else {
 
-      request({ url: `/wxapp/children/${this.data.childId}/`, method: 'GET' }).then(res => {
+      // 使用childApi获取儿童详情
+      childApi.getChild(this.data.childId).then(res => {
+        console.log('儿童详情API返回:', res);
         if (res.statusCode === 200) {
-          this.setData({ child: res.data, age: this.calculateAge(res.data.birth_time) });
+          // 处理API返回的数据结构
+          const childData = res.data.data || res.data;
+          console.log('处理后的儿童数据:', childData);
+          
+          // 处理字段名映射
+          const child = {
+            id: childData.id,
+            name: childData.name,
+            gender: childData.gender,
+            birth_time: childData.birthdate || childData.birth_time, // 兼容两种字段名
+            height: childData.height,
+            weight: childData.weight,
+            parentId: childData.parentId
+          };
+          
+          console.log('最终设置的儿童数据:', child);
+          console.log('计算的年龄:', this.calculateAge(child.birth_time));
+          
+          this.setData({ 
+            child: child, 
+            age: this.calculateAge(child.birth_time) 
+          });
         }
+      }).catch(error => {
+        console.error('获取儿童详情失败:', error);
       });
 
-      request({ url: `/wxapp/plt-data/?childId=${this.data.childId}`, method: 'GET' }).then(res => {
-        console.log(res.data)
+      // 使用growth API获取生长记录，然后处理成图表数据
+      growthApi.getRecordsByChildId(this.data.childId).then(res => {
+        console.log('生长记录数据:', res.data)
+        console.log('数据类型:', typeof res.data)
+        console.log('是否为数组:', Array.isArray(res.data))
         if (res.statusCode === 200) {
-          this.setData({ pltData: res.data });
-          this.getServerData(res.data);
+          // 处理生长记录数据，生成图表所需的格式
+          const chartData = this.processGrowthRecordsToChartData(res.data);
+          this.setData({ pltData: chartData });
+          this.getServerData(chartData);
         }
+      }).catch(error => {
+        console.error('获取生长记录失败:', error);
       })
     }
 
@@ -92,112 +143,311 @@ Page({
   fetchGrowthRecords() {
     const userType = app.globalData.userType || "parent"; // 默认家长端
     if (userType == 'doctor') {
-      // 模拟医生端生长记录数据
-      const mockGrowthRecords = [
-        {
-          id: 1,
-          date: "2024-01-15",
-          height: 85.5,
-          weight: 12.3,
-          head_circumference: 48.2,
-          notes: "生长发育正常，建议继续观察"
-        },
-        {
-          id: 2,
-          date: "2024-02-15",
-          height: 86.8,
-          weight: 12.8,
-          head_circumference: 48.5,
-          notes: "身高体重增长良好"
-        },
-        {
-          id: 3,
-          date: "2024-03-15",
-          height: 88.2,
-          weight: 13.2,
-          head_circumference: 48.8,
-          notes: "各项指标正常，建议增加户外活动"
-        },
-        {
-          id: 4,
-          date: "2024-04-15",
-          height: 89.5,
-          weight: 13.6,
-          head_circumference: 49.0,
-          notes: "生长发育曲线良好"
-        }
-      ];
-      
-      this.setData({ growthRecords: mockGrowthRecords });
-      
-      // 原始API调用（注释掉，使用模拟数据）
-      // request({ url: `/wxapp/doctor-get-children-info/?childId=${this.data.childId}`, method: 'GET' }).then(res => {
-      //   if (res.statusCode === 200) {
-      //     this.setData({ growthRecords: res.data });
-      //   }
-      // });
-
-    }else{
-
-
-      request({ url: `/wxapp/children-info/?childId=${this.data.childId}`, method: 'GET' }).then(res => {
+      // 使用真实的API获取医生端生长记录数据
+      request({ url: `/wxapp/doctor-get-children-info/?childId=${this.data.childId}`, method: 'GET' }).then(res => {
+        console.log('医生端生长记录API返回:', res);
         if (res.statusCode === 200) {
-          this.setData({ growthRecords: res.data });
+          // 处理API返回的数据结构
+          const records = res.data.data || res.data || [];
+          console.log('处理后的生长记录数据:', records);
+          
+          // 处理字段名映射，确保显示时使用正确的字段名
+          const processedRecords = records.map(record => ({
+            id: record.id,
+            height: record.height,
+            weight: record.weight,
+            bmi: record.bmi,
+            boneAge: record.boneAge || record.bone_age, // 后端返回boneAge，兼容bone_age
+            testDate: record.testDate || record.test_date, // 后端返回testDate，兼容test_date
+            createTime: record.createTime || record.create_time
+          }));
+          
+          this.setData({ growthRecords: processedRecords });
         }
+      }).catch(error => {
+        console.error('获取医生端生长记录失败:', error);
+        // 如果API调用失败，设置为空数组
+        this.setData({ growthRecords: [] });
       });
-
+    } else {
+      // 使用growth API获取生长记录
+      growthApi.getRecordsByChildId(this.data.childId).then(res => {
+        console.log('家长端生长记录API返回:', res);
+        if (res.statusCode === 200) {
+          // 处理API返回的数据结构
+          const records = res.data.data || res.data || [];
+          console.log('处理后的生长记录数据:', records);
+          
+          // 处理字段名映射，确保显示时使用正确的字段名
+          const processedRecords = records.map(record => ({
+            id: record.id,
+            height: record.height,
+            weight: record.weight,
+            bmi: record.bmi,
+            boneAge: record.boneAge || record.bone_age, // 后端返回boneAge，兼容bone_age
+            testDate: record.testDate || record.test_date, // 后端返回testDate，兼容test_date
+            createTime: record.createTime || record.create_time
+          }));
+          
+          this.setData({ growthRecords: processedRecords });
+        }
+      }).catch(error => {
+        console.error('获取生长记录失败:', error);
+        // 如果API调用失败，设置为空数组
+        this.setData({ growthRecords: [] });
+      });
     }
-
   },
 
   onAdd() {
-    this.setData({ showModal: true, form: {} });
+    // 设置默认检测日期为今天
+    const today = new Date();
+    const todayStr = today.getFullYear() + '-' + 
+      String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(today.getDate()).padStart(2, '0');
+    
+    this.setData({ 
+      showModal: true, 
+      form: { 
+        testDate: todayStr 
+      } 
+    });
   },
 
   onEdit(event) {
     const id = event.currentTarget.dataset.id;
     const record = this.data.growthRecords.find(item => item.id === id);
-    this.setData({ showModal: true, form: { ...record } });
+    
+    // 处理字段名映射，将后端字段名转换为前端使用的字段名
+    const formData = {
+      id: record.id,
+      height: record.height,
+      weight: record.weight,
+      bmi: record.bmi,
+      boneAge: record.boneAge || record.bone_age, // 后端返回boneAge，兼容bone_age
+      testDate: record.testDate || record.test_date, // 后端返回testDate，兼容test_date
+      createTime: record.createTime || record.create_time
+    };
+    
+    this.setData({ showModal: true, form: formData });
   },
   calculateAge(birth_time) {
-    // console.log(birth_time)
+    console.log('计算年龄，出生日期:', birth_time);
+    if (!birth_time) {
+      console.log('出生日期为空，返回0');
+      return 0;
+    }
+    
     const birthDate = new Date(birth_time);
     const currentDate = new Date();
-    return currentDate.getFullYear() - birthDate.getFullYear();
+    
+    // 检查日期是否有效
+    if (isNaN(birthDate.getTime())) {
+      console.log('无效的出生日期，返回0');
+      return 0;
+    }
+    
+    // 检查是否是未来日期
+    if (birthDate > currentDate) {
+      console.log('出生日期是未来日期，返回0');
+      return 0;
+    }
+    
+    let age = currentDate.getFullYear() - birthDate.getFullYear();
+    const monthDiff = currentDate.getMonth() - birthDate.getMonth();
+    
+    // 如果还没到生日，年龄减1
+    if (monthDiff < 0 || (monthDiff === 0 && currentDate.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    console.log('计算的年龄:', age);
+    return Math.max(0, age); // 确保年龄不为负数
   },
   onDelete(event) {
     const id = event.currentTarget.dataset.id;
-    request({ url: `/wxapp/children-info/${id}/`, method: 'DELETE' }).then(() => this.fetchGrowthRecords());
+    growthApi.deleteRecord(id).then(() => {
+      this.fetchGrowthRecords();
+    }).catch(error => {
+      console.error('删除记录失败:', error);
+    });
   },
 
   onInputChange(event) {
     const field = event.currentTarget.dataset.field;
-    this.setData({ form: { ...this.data.form, [field]: event.detail.value } });
+    const value = event.detail.value;
+    
+    this.setData({ form: { ...this.data.form, [field]: value } });
+    
+    // 自动计算BMI
+    if (field === 'height' || field === 'weight') {
+      this.calculateBMI();
+    }
+  },
+
+  onDateChange(event) {
+    this.setData({ 
+      form: { ...this.data.form, testDate: event.detail.value } 
+    });
+  },
+
+  calculateBMI() {
+    const { height, weight } = this.data.form;
+    if (height && weight && height > 0 && weight > 0) {
+      const heightInM = height / 100; // 转换为米
+      const bmi = (weight / (heightInM * heightInM)).toFixed(1);
+      this.setData({ 
+        form: { ...this.data.form, bmi: bmi } 
+      });
+    }
   },
 
   onSave() {
-    console.log("222")
-    const url = this.data.form.id
-      ? `/wxapp/children-info/${this.data.form.id}/`
-      : `/wxapp/children-info/`;
-    const method = this.data.form.id ? 'PUT' : 'POST';
-  
-    // for (var i=0;i<data_test.length;i++){
-    //   console.log(data_test[i])
-    //   request({ url, method, data: { ...data_test[i], child: this.data.childId } }).then(() => {
-    //     this.closeModal();
-    //     this.fetchGrowthRecords();
-    //   });
-     
-    // }
-    request({ url, method, data: { ...this.data.form, child: this.data.childId } }).then(() => {
-      this.closeModal();
-      this.fetchGrowthRecords();
-    });
+    const form = this.data.form;
+    const childId = this.data.childId;
+    
+    console.log('保存生长记录，childId:', childId);
+    console.log('表单数据:', form);
+    
+    if (!childId) {
+      console.error('childId为空，无法保存记录');
+      wx.showToast({
+        title: '儿童ID缺失，无法保存',
+        icon: 'error'
+      });
+      return;
+    }
+    
+    // 处理字段名映射，将前端字段名转换为后端期望的字段名
+    const recordData = {
+      height: form.height,
+      weight: form.weight,
+      bmi: form.bmi,
+      boneAge: form.boneAge, // 后端期望boneAge
+      testDate: form.testDate, // 后端期望testDate
+      childId: childId // 后端期望childId
+    };
+    
+    if (form.id) {
+      // 更新记录
+      console.log('更新记录，数据:', { ...recordData, id: form.id });
+      growthApi.updateRecord(form.id, recordData).then(() => {
+        this.closeModal();
+        this.fetchGrowthRecords();
+        wx.showToast({
+          title: '更新成功',
+          icon: 'success'
+        });
+      }).catch(error => {
+        console.error('更新记录失败:', error);
+        wx.showToast({
+          title: '更新失败',
+          icon: 'error'
+        });
+      });
+    } else {
+      // 添加新记录
+      console.log('添加新记录，数据:', recordData);
+      growthApi.addRecord(recordData).then(() => {
+        this.closeModal();
+        this.fetchGrowthRecords();
+        wx.showToast({
+          title: '保存成功',
+          icon: 'success'
+        });
+      }).catch(error => {
+        console.error('添加记录失败:', error);
+        wx.showToast({
+          title: '保存失败',
+          icon: 'error'
+        });
+      });
+    }
   },
 
   closeModal() {
     this.setData({ showModal: false });
+  },
+
+  // 处理生长记录数据，转换为图表所需格式
+  processGrowthRecordsToChartData(records) {
+    // 确保records是数组
+    const recordsArray = Array.isArray(records) ? records : [];
+    
+    if (!recordsArray || recordsArray.length === 0) {
+      return {
+        x_data: [],
+        height_p3_data: [],
+        height_p50_data: [],
+        height_p97_data: [],
+        weigeht_p3_data: [],
+        weigeht_p50_data: [],
+        weigeht_p97_data: [],
+        chirld_height: [],
+        chirld_weight: [],
+        name: this.data.child.name || '儿童'
+      };
+    }
+
+    // 按日期排序 - 处理可能的日期格式差异
+    const sortedRecords = recordsArray.sort((a, b) => {
+      const dateA = new Date(a.testDate);
+      const dateB = new Date(b.testDate);
+      return dateA - dateB;
+    });
+    
+    // 提取数据
+    const x_data = sortedRecords.map(record => {
+      const testDate = new Date(record.testDate);
+      const birthDate = new Date(this.data.child.birth_time);
+      const ageInMonths = (testDate.getFullYear() - birthDate.getFullYear()) * 12 + 
+                          (testDate.getMonth() - birthDate.getMonth());
+      return (ageInMonths / 12).toFixed(1); // 转换为年
+    });
+
+    const chirld_height = sortedRecords.map(record => record.height);
+    const chirld_weight = sortedRecords.map(record => record.weight);
+
+    // 生成标准生长曲线数据（这里需要根据实际的标准数据来生成）
+    // 暂时使用示例数据，实际应该从标准生长曲线数据中获取
+    const height_p3_data = this.generateStandardCurve(x_data, 'height', 3);
+    const height_p50_data = this.generateStandardCurve(x_data, 'height', 50);
+    const height_p97_data = this.generateStandardCurve(x_data, 'height', 97);
+    const weigeht_p3_data = this.generateStandardCurve(x_data, 'weight', 3);
+    const weigeht_p50_data = this.generateStandardCurve(x_data, 'weight', 50);
+    const weigeht_p97_data = this.generateStandardCurve(x_data, 'weight', 97);
+
+    return {
+      x_data,
+      height_p3_data,
+      height_p50_data,
+      height_p97_data,
+      weigeht_p3_data,
+      weigeht_p50_data,
+      weigeht_p97_data,
+      chirld_height,
+      chirld_weight,
+      name: this.data.child.name || '儿童'
+    };
+  },
+
+  // 生成标准生长曲线数据（示例实现，实际应该使用真实的标准数据）
+  generateStandardCurve(ages, type, percentile) {
+    return ages.map(age => {
+      const ageNum = parseFloat(age);
+      if (type === 'height') {
+        // 示例身高曲线公式（实际应该使用WHO标准数据）
+        if (percentile === 3) return 45 + ageNum * 6; // 3%线
+        if (percentile === 50) return 50 + ageNum * 7; // 50%线
+        if (percentile === 97) return 55 + ageNum * 8; // 97%线
+      } else if (type === 'weight') {
+        // 示例体重曲线公式（实际应该使用WHO标准数据）
+        if (percentile === 3) return 3 + ageNum * 1.5; // 3%线
+        if (percentile === 50) return 3.5 + ageNum * 2; // 50%线
+        if (percentile === 97) return 4 + ageNum * 2.5; // 97%线
+      }
+      return 0;
+    });
   },
   getServerData(pltData) {
     //模拟从服务器获取数据时的延时

@@ -107,11 +107,15 @@
   width: 700rpx;
   height: 400rpx;
 }
-/*  */
+/* 页面样式 */
 page {
   background-color: #e6f7ff;
   min-height: 100vh;
   padding: 20rpx;
+}
+
+.container {
+  width: 100%;
 }
 
 .modal-content {
@@ -126,6 +130,22 @@ page {
   font-weight: bold;
   color: #007acc;
   margin-bottom: 30rpx;
+  text-align: center;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin: 30rpx 0 20rpx 0;
+  display: block;
+}
+
+.child-info, .parent-info {
+  margin-bottom: 30rpx;
+  padding: 20rpx;
+  background-color: #f9fcff;
+  border-radius: 12rpx;
 }
 
 .form text {
@@ -141,7 +161,9 @@ page {
   border: 1rpx solid #cce7ff;
   border-radius: 12rpx;
   font-size: 28rpx;
-  background-color: #f9fcff;
+  background-color: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .add-btn {
@@ -154,4 +176,20 @@ page {
   font-size: 30rpx;
   font-weight: bold;
   text-align: center;
+  width: 100%;
+}
+
+.result-section {
+  margin-top: 30rpx;
+  padding: 20rpx;
+  background-color: #f0f9ff;
+  border-radius: 12rpx;
+  border-left: 4rpx solid #4facfe;
+}
+
+.result-text {
+  font-size: 28rpx;
+  color: #007acc;
+  font-weight: bold;
+  line-height: 1.6;
 }

@@ -1,5 +1,5 @@
 const app = getApp();
-const { requireLogin } = require('../../utils/auth.js');
+const { requireLogin, getCurrentUserDetail } = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -28,16 +28,20 @@ Page({
       return;
     }
     console.log('已登录，开始初始化页面');
-    // 获取全局的 userType，这里模拟从后台获取
-    this.setUserType();
-    this.getChildrenList();
     
-    // 添加调试信息
-    console.log('页面数据初始化完成:', {
-      userType: this.data.userType,
-      children: this.data.children,
-      swiperList: this.data.swiperList
-    });
+    // 延迟初始化，确保全局数据已设置
+    setTimeout(() => {
+      // 获取全局的 userType，这里模拟从后台获取
+      this.setUserType();
+      this.getChildrenList();
+      
+      // 添加调试信息
+      console.log('页面数据初始化完成:', {
+        userType: this.data.userType,
+        children: this.data.children,
+        swiperList: this.data.swiperList
+      });
+    }, 50);
   },
 
   onShow() {
@@ -66,39 +70,147 @@ Page({
       return 0;
     }
   },
-  getChildrenList() {
+  async getChildrenList() {
     console.log('开始获取儿童列表');
-    // 每次都重新获取数据，确保数据是最新的
-    const { request } = require("../../utils/request");
-    request({ url: `/wxapp/children/`, method: "GET" }).then(res => {
-      console.log('获取儿童列表响应:', res);
-      if (res.statusCode === 200 && res.data && Array.isArray(res.data)) {
-        const children = res.data.map(child => {
-          if (!child || typeof child !== 'object') {
-            console.warn('无效的儿童数据:', child);
-            return null;
+    try {
+      // 首先获取当前用户信息
+      const userDetail = await getCurrentUserDetail();
+      console.log('获取到的用户信息:', userDetail);
+      
+      // 引入封装的儿童API
+      const childApi = require("../../api/child");
+      
+      if (!userDetail || !userDetail.id) {
+        console.error('无法获取用户信息，尝试使用旧接口');
+        // 如果无法获取用户ID，回退到旧接口
+        const res = await childApi.getAllChildren();
+        console.log('回退API响应:', res);
+        if (res.statusCode === 200 && res.data) {
+          console.log('回退API响应结构:', res.data);
+          
+          // 检查响应结构，可能数据在 res.data.data 中
+          let childrenData = res.data;
+          if (res.data.data && Array.isArray(res.data.data)) {
+            childrenData = res.data.data;
+            console.log('回退使用嵌套的data字段:', childrenData);
+          } else if (Array.isArray(res.data)) {
+            childrenData = res.data;
+            console.log('回退直接使用data字段:', childrenData);
           }
-          return {
-            ...child,
-            age: this.calculateAge(child.birth_time)
-          };
-        }).filter(child => child !== null);
+          
+          if (Array.isArray(childrenData)) {
+            const children = childrenData.map(child => {
+              if (!child || typeof child !== 'object') {
+                console.warn('无效的儿童数据:', child);
+                return null;
+              }
+              return {
+                ...child,
+                age: this.calculateAge(child.birth_time)
+              };
+            }).filter(child => child !== null);
+            
+          // 更新全局数据
+          const firstChildId = children.length > 0 ? children[0].id : null;
+          app.globalData.nowChildId = firstChildId;
+          app.globalData.children = children;
+          
+          // 存储到storage，第一个孩子作为默认选中
+          if (children.length > 0) {
+            wx.setStorageSync('children', children);
+            wx.setStorageSync('currentChildId', firstChildId);
+            console.log('已存储儿童信息到storage，默认选中:', firstChildId);
+          }
+          
+          // 更新页面数据并标记页面准备完成
+          this.setData({
+            children: children,
+            currentChildId: firstChildId,
+            isPageReady: true
+          });
+          console.log('回退成功获取儿童列表:', children);
+          } else {
+            console.error('回退数据格式错误，不是数组:', childrenData);
+            // 设置空数组避免模板错误，并标记页面准备完成
+            this.setData({
+              children: [],
+              currentChildId: null,
+              isPageReady: true
+            });
+          }
+        } else {
+          // 设置空数组避免模板错误，并标记页面准备完成
+          this.setData({
+            children: [],
+            currentChildId: null,
+            isPageReady: true
+          });
+        }
+        return;
+      }
+
+      // 使用新的API接口获取儿童列表
+      console.log('调用新API接口，parentId:', userDetail.id);
+      const res = await childApi.getChildrenByParent(userDetail.id);
+      
+      console.log('获取儿童列表响应:', res);
+      if (res.statusCode === 200 && res.data) {
+        console.log('API响应结构:', res.data);
         
-        console.log('处理后的儿童数据:', children);
+        // 检查响应结构，可能数据在 res.data.data 中
+        let childrenData = res.data;
+        if (res.data.data && Array.isArray(res.data.data)) {
+          childrenData = res.data.data;
+          console.log('使用嵌套的data字段:', childrenData);
+        } else if (Array.isArray(res.data)) {
+          childrenData = res.data;
+          console.log('直接使用data字段:', childrenData);
+        }
         
-        // 更新全局数据
-        const firstChildId = children.length > 0 ? children[0].id : null;
-        app.globalData.nowChildId = firstChildId;
-        app.globalData.children = children;
+        if (Array.isArray(childrenData)) {
+          const children = childrenData.map(child => {
+            if (!child || typeof child !== 'object') {
+              console.warn('无效的儿童数据:', child);
+              return null;
+            }
+            return {
+              ...child,
+              age: this.calculateAge(child.birth_time)
+            };
+          }).filter(child => child !== null);
+          
+          console.log('处理后的儿童数据:', children);
+          
+          // 更新全局数据
+          const firstChildId = children.length > 0 ? children[0].id : null;
+          app.globalData.nowChildId = firstChildId;
+          app.globalData.children = children;
+          
+          // 存储到storage，第一个孩子作为默认选中
+          if (children.length > 0) {
+            wx.setStorageSync('children', children);
+            wx.setStorageSync('currentChildId', firstChildId);
+            console.log('已存储儿童信息到storage，默认选中:', firstChildId);
+          }
+          
+          // 更新页面数据并标记页面准备完成
+          this.setData({
+            children: children,
+            currentChildId: firstChildId,
+            isPageReady: true
+          });
+          console.log('成功获取儿童列表:', children);
+        } else {
+          console.error('数据格式错误，不是数组:', childrenData);
+          // 设置空数组避免模板错误，并标记页面准备完成
+          this.setData({
+            children: [],
+            currentChildId: null,
+            isPageReady: true
+          });
+        }
         
-        // 更新页面数据并标记页面准备完成
-        this.setData({
-          children: children,
-          currentChildId: firstChildId,
-          isPageReady: true
-        });
-        
-        console.log('页面数据更新完成，children数量:', children.length);
+        console.log('页面数据更新完成，children数量:', childrenData.length);
       } else {
         console.log('获取儿童列表失败，状态码:', res.statusCode, '数据:', res.data);
         // 设置空数组避免模板错误，并标记页面准备完成
@@ -108,8 +220,8 @@ Page({
           isPageReady: true
         });
       }
-    }).catch(err => {
-      console.error('获取儿童列表失败:', err);
+    } catch (error) {
+      console.error('获取儿童列表失败:', error);
       wx.showToast({
         title: '获取数据失败',
         icon: 'none'
@@ -120,7 +232,7 @@ Page({
         currentChildId: null,
         isPageReady: true
       });
-    });
+    }
   },
   setUserType() {
     // 获取 userType，将后端返回的角色转换为前端需要的格式

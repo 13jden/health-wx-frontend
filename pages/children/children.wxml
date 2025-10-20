@@ -24,13 +24,28 @@
 <view wx:if="{{showChildModal}}" class="modal">
   <view class="modal-content">
     <text class="modal-title">{{isEditing ? "编辑宝宝" : "添加宝宝"}}</text>
+    
     <input class="input" placeholder="请输入姓名" value="{{name}}" bindinput="onNameInput" />
 
     <picker mode="selector" range="{{genderOptions}}" value="{{genderIndex}}" bindchange="onGenderChange">
       <view class="picker">性别: <text class="picker-text">{{genderOptions[genderIndex]}}</text></view>
     </picker>
 
-    <input class="input" type="date" value="{{birth_time}}" bindinput="onBirthTimeInput" placeholder="请选择出生日期" />
+     <picker mode="date" value="{{birthdate}}" bindchange="onBirthdateChange">
+       <view class="picker">出生日期: <text class="picker-text">{{birthdate || '请选择出生日期'}}</text></view>
+     </picker>
+     
+     <input class="input" type="number" placeholder="身高(cm)" value="{{height}}" bindinput="onHeightInput" />
+     
+     <input class="input" type="number" placeholder="体重(kg)" value="{{weight}}" bindinput="onWeightInput" />
+     
+     <input class="input" type="number" placeholder="BMI" value="{{bmi}}" bindinput="onBmiInput" disabled="{{true}}" />
+     
+     <input class="input" type="number" placeholder="骨龄" value="{{boneAge}}" bindinput="onBoneAgeInput" />
+     
+     <picker mode="date" value="{{testDate}}" bindchange="onTestDateChange">
+       <view class="picker">检测日期: <text class="picker-text">{{testDate || '请选择检测日期'}}</text></view>
+     </picker>
 
     <view class="modal-actions">
       <button class="cancel-btn" bindtap="onCancel">取消</button>

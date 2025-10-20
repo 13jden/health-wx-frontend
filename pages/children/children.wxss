@@ -87,10 +87,21 @@
 
 .modal-content {
   width: 80%;
+  max-height: 80vh;
   background: white;
   padding: 40rpx;
   border-radius: 20rpx;
   box-shadow: 0 5rpx 20rpx rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+}
+
+/* 模态标题 */
+.modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30rpx;
+  color: #333;
 }
 
 /* 输入框 */
@@ -103,12 +114,19 @@
   border-radius: 10rpx;
 }
 
-/* 性别选择器 */
+/* 禁用状态的输入框 */
+.input[disabled] {
+  background-color: #f5f5f5;
+  color: #999;
+}
+
+/* 选择器 */
 .picker {
   padding: 20rpx;
   background: #f7f7f7;
   border-radius: 10rpx;
   margin: 10rpx 0;
+  border: 1px solid #ddd;
 }
 
 .picker-text {

@@ -1,5 +1,6 @@
- <!-- 孩子基本信息 -->
- <view class="header">
+<view class="container">
+  <!-- 孩子基本信息 -->
+  <view class="header">
     <image class="avatar" src="{{child.avatar || (child.gender == '男' ? '/assets/icons/boy.png' : '/assets/icons/girl.png')}}" />
     <view class="info">
       <text class="name">{{child.name}}</text>
@@ -7,13 +8,19 @@
       <text class="birth">出生日期：{{child.birth_time}}</text>
     </view>
   </view>
-  <text class="name">{{child.name}}体重生长曲线</text>
+  
+  <text class="name">{{child.name}}体重变化趋势</text>
 
-  <view class="charts">
-
-    <canvas canvas-id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-weight" id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-weight" class="charts" bindtouchstart="touchstart" bindtouchmove="touchmove" bindtouchend="touchend" />
+  <!-- 体重图表 -->
+  <view class="chart-section">
+    <text class="chart-title">体重变化</text>
+    <view class="charts">
+      <canvas canvas-id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-weight" id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-weight" class="charts" bindtouchstart="touchstart" bindtouchmove="touchmove" bindtouchend="touchend" />
+    </view>
   </view>
-    <!-- 了解生长曲线 -->
-<navigator url="/pages/detail_h/detail_h" class="learn-more">
-  了解生长曲线图和百分位 >
-</navigator>
+  
+  <!-- 了解生长曲线 -->
+  <navigator url="/pages/detail_h/detail_h" class="learn-more">
+    了解生长曲线图和百分位 >
+  </navigator>
+</view>

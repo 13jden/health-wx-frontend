@@ -141,6 +141,7 @@ const streamRequest = (options) => {
       data: options.data || {},
       enableChunked: true, // 支持分块传输
       responseType: 'arraybuffer', // 流式响应使用arraybuffer类型
+      timeout: 30000, // 设置30秒超时
       success(res) {
         // 流式请求的最终结果通过onChunkReceived处理，这里resolve一个标识
         resolve({ isStreaming: true, statusCode: res.statusCode });
@@ -165,29 +166,35 @@ const streamRequest = (options) => {
           try {
             let textData = '';
             
-            // 更准确的类型检测
+            // 更准确的类型检测，兼容真机环境
+            console.log('原始数据类型:', typeof chunkRes.data, chunkRes.data.constructor?.name);
+            console.log('原始数据长度:', chunkRes.data?.length);
+            
             if (chunkRes.data instanceof ArrayBuffer) {
-              // 情况1: ArrayBuffer类型 - 转换为Uint8Array后解码
+              // 情况1: ArrayBuffer类型 - 使用兼容性更好的解码方式
               const bytes = new Uint8Array(chunkRes.data);
-              const decoder = new TextDecoder('utf-8');
-              textData = decoder.decode(bytes);
+              // 真机环境可能不支持TextDecoder，使用自定义UTF-8解码
+              textData = utf8Decode(bytes);
+              console.log('ArrayBuffer解码结果:', textData.substring(0, 50));
             } else if (chunkRes.data instanceof Uint8Array || 
                       (chunkRes.data.constructor && chunkRes.data.constructor.name === 'Uint8Array') ||
                       (chunkRes.data.length !== undefined && typeof chunkRes.data === 'object' && !Array.isArray(chunkRes.data))) {
-              // 情况2: Uint8Array类型 - 直接解码UTF-8字节流
-              const decoder = new TextDecoder('utf-8');
-              textData = decoder.decode(chunkRes.data);
+              // 情况2: Uint8Array类型 - 使用自定义UTF-8解码
+              textData = utf8Decode(chunkRes.data);
+              console.log('Uint8Array解码结果:', textData.substring(0, 50));
             } else if (Array.isArray(chunkRes.data)) {
               // 情况3: 数字数组类型 - 转换为Uint8Array后解码
               const bytes = new Uint8Array(chunkRes.data);
-              const decoder = new TextDecoder('utf-8');
-              textData = decoder.decode(bytes);
+              textData = utf8Decode(bytes);
+              console.log('数组解码结果:', textData.substring(0, 50));
             } else if (typeof chunkRes.data === 'string') {
               // 情况4: 字符串类型 - 直接使用，不进行额外解码
               textData = chunkRes.data;
+              console.log('字符串数据:', textData.substring(0, 50));
             } else {
               // 情况5: 其他类型，尝试转换为字符串
               textData = String(chunkRes.data);
+              console.log('其他类型转换结果:', textData.substring(0, 50));
             }
             
             // 创建包含解码后数据的响应对象
@@ -203,9 +210,34 @@ const streamRequest = (options) => {
             }
           } catch (e) {
             console.error('解码分块数据失败:', e);
-            // 如果解码失败，直接传递原始数据
-            if (options.onChunkReceived && typeof options.onChunkReceived === 'function') {
-              options.onChunkReceived(chunkRes);
+            // 如果解码失败，尝试简单的字符串转换
+            try {
+              let fallbackText = '';
+              if (chunkRes.data instanceof ArrayBuffer) {
+                const bytes = new Uint8Array(chunkRes.data);
+                fallbackText = String.fromCharCode.apply(null, bytes);
+              } else if (Array.isArray(chunkRes.data)) {
+                fallbackText = String.fromCharCode.apply(null, chunkRes.data);
+              } else {
+                fallbackText = String(chunkRes.data);
+              }
+              
+              console.log('备用解码结果:', fallbackText.substring(0, 50));
+              
+              const fallbackChunkRes = {
+                ...chunkRes,
+                data: fallbackText
+              };
+              
+              if (options.onChunkReceived && typeof options.onChunkReceived === 'function') {
+                options.onChunkReceived(fallbackChunkRes);
+              }
+            } catch (fallbackError) {
+              console.error('备用解码也失败:', fallbackError);
+              // 最后的备用方案：直接传递原始数据
+              if (options.onChunkReceived && typeof options.onChunkReceived === 'function') {
+                options.onChunkReceived(chunkRes);
+              }
             }
           }
         } else {

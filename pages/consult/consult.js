@@ -46,15 +46,24 @@ Page({
   // 处理分块数据 - 处理已解码的文本数据
   handleChunkData(chunkRes) {
     try {
+      console.log('收到分块数据:', chunkRes);
+      console.log('数据类型:', typeof chunkRes.data);
+      console.log('数据长度:', chunkRes.data?.length);
+      
       // chunkRes.data已经是request.js解码后的字符串
       const textData = chunkRes.data;
       
       if (!textData) {
+        console.log('分块数据为空，跳过处理');
         return;
       }
       
+      console.log('处理文本数据:', textData);
+      console.log('文本数据前50字符:', textData.substring(0, 50));
+      
       // 过滤无用内容（如<think>标签）
       if (textData.includes('</think>')) {
+        console.log('检测到think标签，跳过处理');
         return;
       }
       
@@ -69,6 +78,7 @@ Page({
       
       // 累积原始数据到缓冲区
       this.data.streamBuffer += textData;
+      console.log('更新缓冲区，当前长度:', this.data.streamBuffer.length);
       
       // 实时更新最后一条消息（显示原始累积数据，不进行额外处理）
       this.updateLastMessage(this.data.streamBuffer);
@@ -147,10 +157,14 @@ Page({
 
   // 更新最后一条消息内容
   updateLastMessage(content) {
+    console.log('更新最后一条消息，内容长度:', content ? content.length : 0);
+    
     const messages = [...this.data.messages];
     if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
       // 处理数据：将 / 符号转换为换行符
       let processedContent = content.replace(/\//g, '\n');
+      
+      console.log('处理后的内容:', processedContent.substring(0, 100) + '...');
       
       // 更新消息内容
       messages[messages.length - 1].content = processedContent;
@@ -158,12 +172,20 @@ Page({
       // 重新生成HTML内容
       try {
         messages[messages.length - 1].htmlContent = parseMarkdownAdvanced(processedContent);
+        console.log('Markdown解析成功');
       } catch (e) {
         console.error('Markdown解析失败:', e);
         messages[messages.length - 1].htmlContent = processedContent; // 降级为纯文本
       }
       
-      this.setData({ messages });
+      console.log('设置消息数据，消息数量:', messages.length);
+      this.setData({ messages }, () => {
+        console.log('消息数据设置完成');
+        // 真机环境下强制触发页面更新
+        this.forceUpdate();
+      });
+    } else {
+      console.log('没有找到assistant消息或消息列表为空');
     }
   },
 
@@ -258,6 +280,20 @@ Page({
     }
   },
 
+  // 强制更新页面（真机环境下的兼容性处理）
+  forceUpdate() {
+    // 通过临时修改一个无关的数据来强制触发页面更新
+    const currentTime = Date.now();
+    this.setData({ 
+      _forceUpdate: currentTime 
+    }, () => {
+      // 立即清除，避免影响其他逻辑
+      setTimeout(() => {
+        this.setData({ _forceUpdate: null });
+      }, 10);
+    });
+  },
+
   async onSend() {
     const content = (this.data.inputValue || '').trim();
     if (!content) return;
@@ -286,7 +322,9 @@ Page({
     }));
 
     // 4) 先添加一个空的assistant消息，用于实时更新
+    console.log('添加assistant消息');
     this.appendMessage({ role: 'assistant', content: '正在思考中...' });
+    console.log('当前消息数量:', this.data.messages.length);
 
     try {
       // 5) 发送流式请求
@@ -303,18 +341,39 @@ Page({
         data: payload,
         onChunkReceived: (chunkRes) => {
           // 处理分块数据
+          console.log('收到流式数据回调');
           this.handleChunkData(chunkRes);
         }
       });
+      
+      console.log('流式请求完成，结果:', res);
       
       // 流式传输完成，保存最终结果
       this.onStreamComplete();
       
       // 如果流式传输失败，使用默认回复
       if (!res.isStreaming) {
+        console.log('流式传输失败，使用默认回复');
         this.updateLastMessage('已收到，医生正在分析...');
         this.onStreamComplete();
       }
+      
+      // 真机环境下的备用检查：如果5秒后仍然没有内容更新，强制显示默认消息
+      setTimeout(() => {
+        if (this.data.isStreaming && this.data.streamBuffer.length === 0) {
+          console.log('真机环境备用机制：显示默认消息');
+          this.updateLastMessage('医生正在分析您的问题，请稍候...');
+        }
+      }, 5000);
+      
+      // 真机环境下的额外检查：如果10秒后仍然没有内容更新，显示错误信息
+      setTimeout(() => {
+        if (this.data.isStreaming && this.data.streamBuffer.length === 0) {
+          console.log('真机环境超时处理：显示错误信息');
+          this.updateLastMessage('网络连接异常，请检查网络后重试');
+          this.onStreamComplete();
+        }
+      }, 10000);
       
     } catch (e) {
       console.error('发送失败:', e);
