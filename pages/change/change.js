@@ -20,19 +20,30 @@ Page({
   },
   selectChild(event) {
     const selectedId = event.currentTarget.dataset.id;
-    console.log("选择儿童", selectedId);
+    console.log("选择儿童", selectedId, typeof selectedId);
     
     // 获取当前storage中的孩子列表
     const children = wx.getStorageSync('children') || [];
+    console.log('当前storage中的children:', children);
+    
+    // 确保ID类型一致进行比较
     const selectedChild = children.find(child => child.id == selectedId);
+    console.log('找到的选中孩子:', selectedChild);
     
     if (selectedChild) {
       // 将选中的孩子移到数组的第一个位置
       const newChildren = [selectedChild, ...children.filter(child => child.id != selectedId)];
+      console.log('重新排序后的children:', newChildren);
       
-      // 更新storage
+      // 更新storage - 确保顺序正确保存
       wx.setStorageSync('children', newChildren);
       wx.setStorageSync('currentChildId', selectedId);
+      
+      // 验证storage是否真的更新了
+      const updatedChildren = wx.getStorageSync('children');
+      const updatedCurrentId = wx.getStorageSync('currentChildId');
+      console.log('验证storage更新 - children:', updatedChildren);
+      console.log('验证storage更新 - currentChildId:', updatedCurrentId);
       
       // 更新全局数据
       app.globalData.nowChildId = selectedId;
@@ -45,6 +56,9 @@ Page({
       });
       
       console.log('已切换孩子，新顺序:', newChildren.map(c => c.name));
+      console.log('当前选中的孩子ID:', selectedId);
+    } else {
+      console.error('未找到选中的孩子，selectedId:', selectedId, 'children:', children);
     }
   },
   async getChildrenList() {

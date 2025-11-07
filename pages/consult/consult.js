@@ -329,10 +329,12 @@ Page({
     try {
       // 5) 发送流式请求
       // 按后端Schema构建请求体
+      const currentChildId = wx.getStorageSync('currentChildId');
       const payload = {
         content, // 用户问题
         memory: sanitizedMemory,
-        attachments: []
+        attachments: [],
+        childId: currentChildId || null // 添加儿童ID参数
       };
 
       const res = await streamRequest({

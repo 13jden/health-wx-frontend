@@ -111,21 +111,32 @@ Page({
             }).filter(child => child !== null);
             
           // 更新全局数据
-          const firstChildId = children.length > 0 ? children[0].id : null;
-          app.globalData.nowChildId = firstChildId;
           app.globalData.children = children;
           
-          // 存储到storage，第一个孩子作为默认选中
+          // 存储到storage
+          let currentChildId = null;
           if (children.length > 0) {
             wx.setStorageSync('children', children);
-            wx.setStorageSync('currentChildId', firstChildId);
-            console.log('已存储儿童信息到storage，默认选中:', firstChildId);
+            
+            // 检查是否已有选中的孩子，如果没有则选择第一个
+            const existingCurrentChildId = wx.getStorageSync('currentChildId');
+            if (!existingCurrentChildId || !children.find(child => child.id === existingCurrentChildId)) {
+              currentChildId = children[0].id;
+              wx.setStorageSync('currentChildId', currentChildId);
+              app.globalData.nowChildId = currentChildId;
+              console.log('设置默认选中孩子:', currentChildId);
+            } else {
+              // 保持当前选中的孩子
+              currentChildId = existingCurrentChildId;
+              app.globalData.nowChildId = currentChildId;
+              console.log('保持当前选中孩子:', currentChildId);
+            }
           }
           
           // 更新页面数据并标记页面准备完成
           this.setData({
             children: children,
-            currentChildId: firstChildId,
+            currentChildId: currentChildId,
             isPageReady: true
           });
           console.log('回退成功获取儿童列表:', children);
@@ -182,21 +193,32 @@ Page({
           console.log('处理后的儿童数据:', children);
           
           // 更新全局数据
-          const firstChildId = children.length > 0 ? children[0].id : null;
-          app.globalData.nowChildId = firstChildId;
           app.globalData.children = children;
           
-          // 存储到storage，第一个孩子作为默认选中
+          // 存储到storage
+          let currentChildId = null;
           if (children.length > 0) {
             wx.setStorageSync('children', children);
-            wx.setStorageSync('currentChildId', firstChildId);
-            console.log('已存储儿童信息到storage，默认选中:', firstChildId);
+            
+            // 检查是否已有选中的孩子，如果没有则选择第一个
+            const existingCurrentChildId = wx.getStorageSync('currentChildId');
+            if (!existingCurrentChildId || !children.find(child => child.id === existingCurrentChildId)) {
+              currentChildId = children[0].id;
+              wx.setStorageSync('currentChildId', currentChildId);
+              app.globalData.nowChildId = currentChildId;
+              console.log('设置默认选中孩子:', currentChildId);
+            } else {
+              // 保持当前选中的孩子
+              currentChildId = existingCurrentChildId;
+              app.globalData.nowChildId = currentChildId;
+              console.log('保持当前选中孩子:', currentChildId);
+            }
           }
           
           // 更新页面数据并标记页面准备完成
           this.setData({
             children: children,
-            currentChildId: firstChildId,
+            currentChildId: currentChildId,
             isPageReady: true
           });
           console.log('成功获取儿童列表:', children);

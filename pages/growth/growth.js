@@ -21,33 +21,40 @@ Page({
 
   // 获取儿童信息
   fetchChildInfo() {
-    // 从storage获取第一个孩子
+    // 从storage获取当前选中的孩子
     const storageChildren = wx.getStorageSync('children');
     const storageCurrentId = wx.getStorageSync('currentChildId');
     
-    let childId;
+    let child;
     if (storageChildren && storageChildren.length > 0) {
-      childId = storageCurrentId || storageChildren[0].id;
-      console.log('Growth页面从storage获取childId:', childId);
-    } else {
-      childId = app.globalData.nowChildId;
-      console.log('Growth页面从全局数据获取childId:', childId);
+      if (storageCurrentId) {
+        // 根据currentChildId找到对应的child
+        child = storageChildren.find(child => child.id === storageCurrentId);
+        console.log('Growth页面根据currentChildId找到child:', child);
+      }
+      
+      // 如果没找到或没有currentChildId，使用第一个
+      if (!child) {
+        child = storageChildren[0];
+        console.log('Growth页面使用第一个child:', child);
+      }
     }
     
-    if (childId) {
-      childApi.getChild(childId).then(res => {
-        if (res.statusCode === 200) {
-          const child = res.data;
-          const age = this.calculateAge(child.birth_time);
-          this.setData({ 
-            child: child,
-            age: age
-          });
-          this.initForm();
-        }
-      }).catch(error => {
-        console.error('获取儿童详情失败:', error);
+    if (child) {
+      console.log('Growth页面child数据:', child);
+      console.log('Growth页面birthdate:', child.birthdate);
+      
+      const age = this.calculateAge(child.birthdate);
+      console.log('Growth页面计算出的年龄:', age);
+      
+      this.setData({ 
+        child: child,
+        age: age
       });
+      this.initForm();
+      console.log('Growth页面设置child数据:', child);
+    } else {
+      console.log('Growth页面未找到child数据');
     }
   },
 
@@ -68,10 +75,35 @@ Page({
   },
 
   // 计算年龄
-  calculateAge(birth_time) {
-    const birthDate = new Date(birth_time);
+  calculateAge(birthdate) {
+    if (!birthdate) {
+      console.log('Growth页面birthdate为空');
+      return 0;
+    }
+    
+    console.log('Growth页面开始计算年龄，birthdate:', birthdate);
+    const birthDate = new Date(birthdate);
     const currentDate = new Date();
-    return currentDate.getFullYear() - birthDate.getFullYear();
+    
+    console.log('Growth页面birthDate:', birthDate);
+    console.log('Growth页面currentDate:', currentDate);
+    
+    // 检查日期是否有效
+    if (isNaN(birthDate.getTime())) {
+      console.log('Growth页面birthdate格式无效');
+      return 0;
+    }
+    
+    let age = currentDate.getFullYear() - birthDate.getFullYear();
+    const monthDiff = currentDate.getMonth() - birthDate.getMonth();
+    
+    // 如果还没到生日，年龄减1
+    if (monthDiff < 0 || (monthDiff === 0 && currentDate.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    console.log('Growth页面计算年龄结果:', age);
+    return age;
   },
   onInputChange(event) {
     const field = event.currentTarget.dataset.field;

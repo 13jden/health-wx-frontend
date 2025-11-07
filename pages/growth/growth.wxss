@@ -121,8 +121,9 @@ page {
 .modal-content {
   background-color: #ffffff;
   border-radius: 24rpx;
-  padding: 30rpx;
+  padding: 40rpx 30rpx;
   box-shadow: 0 8rpx 16rpx rgba(0, 0, 0, 0.05);
+  min-height: 600rpx;
 }
 
 .modal-title {
@@ -143,7 +144,7 @@ page {
 
 .child-info, .parent-info {
   margin-bottom: 30rpx;
-  padding: 20rpx;
+  padding: 30rpx 20rpx;
   background-color: #f9fcff;
   border-radius: 12rpx;
 }
@@ -151,19 +152,23 @@ page {
 .form text {
   display: block;
   margin-top: 20rpx;
+  margin-bottom: 10rpx;
   font-size: 28rpx;
   color: #333;
+  line-height: 1.4;
 }
 
 .form input {
   margin-top: 10rpx;
-  padding: 20rpx;
+  padding: 24rpx 20rpx;
   border: 1rpx solid #cce7ff;
   border-radius: 12rpx;
   font-size: 28rpx;
   background-color: #ffffff;
   width: 100%;
   box-sizing: border-box;
+  min-height: 80rpx;
+  line-height: 1.4;
 }
 
 .add-btn {
