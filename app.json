@@ -13,7 +13,6 @@
     "pages/children/children",
     "pages/details/details",
     "pages/change/change",
-    "pages/height/height",
     "pages/weight/weight",
     "pages/report/report",
     "pages/detail_h/detail_h",
@@ -50,6 +49,14 @@
     "navigationBarTitleText": "Weixin",
     "navigationBarBackgroundColor": "#ffffff"
   },
+  "subpackages": [
+    {
+      "root": "subpackages/chart",
+      "pages": [
+        "pages/height/height"
+      ]
+    }
+  ],
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"

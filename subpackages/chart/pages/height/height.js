@@ -1,6 +1,6 @@
-const { request } = require("../../utils/request");
-const childApi = require("../../api/child");
-const growthApi = require("../../api/growth");
+const { request } = require("../../../../utils/request");
+const childApi = require("../../../../api/child");
+const growthApi = require("../../../../api/growth");
 const echarts = require('../../ec-canvas/echarts.js');
 const app = getApp();
 

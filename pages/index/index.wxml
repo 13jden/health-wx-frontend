@@ -37,7 +37,7 @@
           <image src="/assets/icons/doctor.png" class="icon" />
           <text class="menu-text">智能问诊</text>
         </navigator>
-        <navigator url="/pages/height/height" class="menu-item">
+        <navigator url="/subpackages/chart/pages/height/height" class="menu-item">
           <image src="/assets/icons/height.png" class="icon" />
           <text class="menu-text">身高曲线</text>
         </navigator>
