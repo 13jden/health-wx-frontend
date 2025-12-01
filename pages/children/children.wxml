@@ -1,8 +1,11 @@
 <view class="container">
-  <button class="add-btn" bindtap="onShowAddChildModal">+ 添加宝宝</button>
+  <button class="add-btn" bindtap="onShowAddChildModal">
+    {{children.length ? "编辑宝宝信息" : "+ 添加宝宝"}}
+  </button>
 
   <view class="child-list">
-    <block wx:for="{{children}}" wx:key="id">
+    <block wx:if="{{children.length > 0}}">
+      <block wx:for="{{children}}" wx:key="id">
       <view class="child-card">
         <image class="child-icon" src="{{item.gender === '男' ? '/assets/icons/boy.png' : '/assets/icons/girl.png'}}" />
         <view class="child-info">
@@ -10,13 +13,19 @@
           <text class="child-age">年龄: {{item.age}} 岁</text>
         </view>
        <!-- 编辑 & 删除 -->
-<view class="icon-group">
-  <image class="icon-btn" src="/assets/icons/eye.png" data-id="{{item.id}}" bindtap="onDetailChild" />
-  <image class="icon-btn" src="/assets/icons/edit.png" data-id="{{item.id}}" bindtap="onEditChild" />
-  <image class="icon-btn" src="/assets/icons/delete.png" data-id="{{item.id}}" bindtap="onDeleteChild" />
-</view>
+        <view class="icon-group">
+          <image class="icon-btn" src="/assets/icons/eye.png" data-id="{{item.id}}" bindtap="onDetailChild" />
+          <image class="icon-btn" src="/assets/icons/edit.png" data-id="{{item.id}}" bindtap="onEditChild" />
+          <image class="icon-btn" src="/assets/icons/delete.png" data-id="{{item.id}}" bindtap="onDeleteChild" />
+        </view>
       </view>
+      </block>
     </block>
+
+    <view class="empty-state" wx:if="{{children.length === 0}}">
+      <text class="empty-text">暂无孩子信息</text>
+      <text class="empty-hint">点击上方按钮添加孩子</text>
+    </view>
   </view>
 
 

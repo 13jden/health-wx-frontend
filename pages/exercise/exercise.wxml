@@ -1,25 +1,68 @@
 <view class="container">
-  <view class="summary">
-    <view class="card">
-      <text class="label">今日消耗</text>
-      <text class="value">{{summary.totalCalories}} kcal</text>
-    </view>
-  </view>
-
-  <view class="list">
-    <block wx:for="{{records}}" wx:key="id">
-      <view class="item">
-        <view class="left">
-          <text class="type">{{item.type}}</text>
-          <text class="duration">{{item.durationMin}} 分钟</text>
+  <!-- 按日期分组的记录列表 -->
+  <scroll-view class="records-scroll" scroll-y="true">
+    <view class="records-list">
+      <block wx:for="{{groupedRecords}}" wx:key="date">
+        <view class="date-group">
+          <view class="date-header">
+            <text class="date-text">{{item.dateText}}</text>
+            <text class="date-count">{{item.records.length}}条记录</text>
+          </view>
+          <view class="records-group">
+            <view class="record-item" wx:for="{{item.records}}" wx:for-item="record" wx:key="id">
+              <view class="record-content">
+                <view class="record-header">
+                  <text class="record-type">{{record.exerciseType || '运动'}}</text>
+                  <text class="record-time">{{record.timeText}}</text>
+                </view>
+                <view class="record-info">
+                  <text class="record-intensity" wx:if="{{record.intensity}}">{{record.intensity}}</text>
+                  <text class="record-duration" wx:if="{{record.duration}}">{{record.duration}}分钟</text>
+                  <text class="record-calories" wx:if="{{record.caloriesBurned}}">{{record.caloriesText}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
         </view>
-        <text class="cal">-{{item.calories}} kcal</text>
+      </block>
+      
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{groupedRecords.length === 0}}">
+        <text class="empty-text">暂无运动记录</text>
+        <text class="empty-hint">点击右下角按钮快速添加</text>
       </view>
-    </block>
+    </view>
+  </scroll-view>
+
+  <!-- 快速添加按钮 -->
+  <view class="fab" bindtap="showAddModal">
+    <text class="fab-icon">+</text>
   </view>
 
-  <view class="fab" bindlongpress="onLongPressRecord" bindtouchend="onStopRecord">
-    <text>按住 语音</text>
+  <!-- 添加记录弹窗 -->
+  <view class="modal" wx:if="{{showModal}}" bindtap="hideAddModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">快速添加记录</text>
+        <text class="modal-close" bindtap="hideAddModal">×</text>
+      </view>
+      <view class="modal-body">
+        <textarea 
+          class="input-textarea" 
+          placeholder="输入运动内容，例如：今天跑步30分钟"
+          value="{{inputContent}}"
+          bindinput="onInputChange"
+          auto-focus="{{true}}"
+          maxlength="200"
+        ></textarea>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="hideAddModal">取消</button>
+        <button class="btn-submit" bindtap="submitRecord" disabled="{{!inputContent || submitting}}">
+          {{submitting ? '提交中...' : '提交'}}
+        </button>
+      </view>
+    </view>
   </view>
 </view>
 

@@ -1,0 +1,27 @@
+{
+  "name": "wxapp",
+  "version": "1.0.0",
+  "main": "app.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/13jden/health-wx-frontend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/13jden/health-wx-frontend/issues"
+  },
+  "homepage": "https://github.com/13jden/health-wx-frontend#readme",
+  "description": "",
+  "dependencies": {
+    "echarts": "^6.0.0",
+    "markdown-it": "^14.1.0"
+  }
+}

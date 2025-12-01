@@ -72,6 +72,23 @@
   cursor: pointer;
 }
 
+/* 空状态 */
+.empty-state {
+  margin-top: 80rpx;
+  text-align: center;
+  color: #8e9aaf;
+}
+
+.empty-text {
+  display: block;
+  font-size: 32rpx;
+  margin-bottom: 12rpx;
+}
+
+.empty-hint {
+  font-size: 26rpx;
+}
+
 /* 弹出框 */
 .modal {
   position: fixed;

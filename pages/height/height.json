@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "身高曲线"
+  "navigationBarTitleText": "身高曲线",
+  "usingComponents": {
+    "ec-canvas": "../../components/ec-canvas/ec-canvas"
   }
+}

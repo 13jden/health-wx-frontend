@@ -20,51 +20,43 @@
     </view>
 
     <view class="menu">
-    <block wx:if="{{userType === 'parent'}}">
-      <navigator url="/pages/children/children" class="menu-item">
-        <image src="/assets/icons/baby.png" class="icon" />
-        <text class="menu-text">添加孩子</text>
-      </navigator>
-      <navigator url="/pages/change/change" class="menu-item">
-        <image src="/assets/icons/change.png" class="icon" />
-        <text class="menu-text">孩子切换</text>
-      </navigator>
-      <navigator url="/pages/appointment_doctor/appointment_doctor" class="menu-item">
-        <image src="/assets/icons/doctor.png" class="icon" />
-        <text class="menu-text">预约医师</text>
-      </navigator>
-      <navigator url="/pages/growth/growth" class="menu-item">
-        <image src="/assets/icons/growth.png" class="icon" />
-        <text class="menu-text">预测发育</text>
-      </navigator>
-      <navigator url="/pages/diet/diet" class="menu-item">
-        <image src="/assets/icons/food.png" class="icon" />
-        <text class="menu-text">饮食记录</text>
-      </navigator>
-      <navigator url="/pages/exercise/exercise" class="menu-item">
-        <image src="/assets/icons/run.png" class="icon" />
-        <text class="menu-text">运动记录</text>
-      </navigator>
-      <navigator url="/pages/consult/consult" class="menu-item">
-        <image src="/assets/icons/doctor.png" class="icon" />
-        <text class="menu-text">智能问诊</text>
-      </navigator>
-      <navigator url="/pages/height/height" class="menu-item">
-        <image src="/assets/icons/height.png" class="icon" />
-        <text class="menu-text">身高曲线</text>
-      </navigator>
-      <navigator url="/pages/weight/weight" class="menu-item">
-        <image src="/assets/icons/weight.png" class="icon" />
-        <text class="menu-text">体重曲线</text>
-      </navigator>
-    </block>
+      <block wx:if="{{userType === 'parent'}}">
+        <navigator url="/pages/children/children" class="menu-item">
+          <image src="/assets/icons/baby.png" class="icon" />
+          <text class="menu-text">孩子信息</text>
+        </navigator>
+        <navigator url="/pages/diet/diet" class="menu-item">
+          <image src="/assets/icons/food.png" class="icon" />
+          <text class="menu-text">饮食记录</text>
+        </navigator>
+        <navigator url="/pages/exercise/exercise" class="menu-item">
+          <image src="/assets/icons/run.png" class="icon" />
+          <text class="menu-text">运动记录</text>
+        </navigator>
+        <navigator url="/pages/consult/consult" class="menu-item">
+          <image src="/assets/icons/doctor.png" class="icon" />
+          <text class="menu-text">智能问诊</text>
+        </navigator>
+        <navigator url="/pages/height/height" class="menu-item">
+          <image src="/assets/icons/height.png" class="icon" />
+          <text class="menu-text">身高曲线</text>
+        </navigator>
+        <navigator url="/pages/weight/weight" class="menu-item">
+          <image src="/assets/icons/weight.png" class="icon" />
+          <text class="menu-text">体重曲线</text>
+        </navigator>
+        <navigator url="/pages/report/report" class="menu-item">
+          <image src="/assets/icons/info.png" class="icon" />
+          <text class="menu-text">健康报告</text>
+        </navigator>
+      </block>
 
-    <block wx:if="{{userType === 'doctor'}}">
-      <navigator url="/pages/appointment/appointment" class="menu-item">
-        <image src="/assets/icons/appointment.png" class="icon" />
-        <text class="menu-text">查看预约</text>
-      </navigator>
-    </block>
+      <block wx:if="{{userType === 'doctor'}}">
+        <navigator url="/pages/appointment/appointment" class="menu-item">
+          <image src="/assets/icons/appointment.png" class="icon" />
+          <text class="menu-text">查看预约</text>
+        </navigator>
+      </block>
     </view>
   </view>
 </view>

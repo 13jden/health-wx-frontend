@@ -1,66 +1,490 @@
+/* 容器 */
 .container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #f7f8fa;
+  background: #f5f7fa;
 }
 
-.summary {
-  display: flex;
-  gap: 20rpx;
-  padding: 20rpx;
-}
-
-.card {
+/* 记录列表区域 */
+.records-scroll {
   flex: 1;
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
+  height: 0; /* 配合flex:1使用 */
 }
 
-.label { color: #666; font-size: 26rpx; }
-.value { color: #111; font-size: 36rpx; font-weight: 600; }
+.records-list {
+  padding: 32rpx 24rpx;
+}
 
-.list { padding: 0 20rpx; }
-.item {
+/* 日期分组 */
+.date-group {
+  margin-bottom: 40rpx;
+}
+
+.date-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 20rpx;
+  margin-bottom: 20rpx;
+  padding: 0 4rpx;
+}
+
+.date-text {
+  color: #2d3748;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.date-count {
+  color: #8e9aaf;
+  font-size: 24rpx;
+}
+
+/* 记录组 */
+.records-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.record-item {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 32rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
   margin-bottom: 16rpx;
 }
-.left { display: flex; flex-direction: column; }
-.meal { font-size: 28rpx; color: #333; }
-.food { font-size: 24rpx; color: #888; }
-.cal { font-size: 28rpx; color: #1a73e8; font-weight: 600; }
 
+.record-content {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.record-basic {
+  display: flex;
+  flex-direction: column;
+}
+
+.record-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16rpx;
+}
+
+.record-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.record-name {
+  color: #2d3748;
+  font-size: 32rpx;
+  font-weight: 600;
+  flex: 1;
+}
+
+.record-calories {
+  color: #667eea;
+  font-size: 28rpx;
+  font-weight: 500;
+  margin-left: 16rpx;
+}
+
+.record-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.record-type {
+  color: #8e9aaf;
+  font-size: 26rpx;
+  background: #f7fafc;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.record-time {
+  color: #8e9aaf;
+  font-size: 26rpx;
+}
+
+.record-quantity {
+  margin-bottom: 16rpx;
+}
+
+.quantity-text {
+  color: #2d3748;
+  font-size: 28rpx;
+}
+
+/* 图片展示 */
+.record-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.record-image {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 12rpx;
+  background: #f7fafc;
+}
+
+/* 详细信息区域 */
+.record-detail {
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #e2e8f0;
+}
+
+.detail-section {
+  margin-bottom: 20rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-label {
+  color: #8e9aaf;
+  font-size: 26rpx;
+  margin-bottom: 8rpx;
+}
+
+.detail-value {
+  color: #2d3748;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.notes-text {
+  color: #4a5568;
+  font-size: 28rpx;
+  line-height: 1.8;
+}
+
+.detail-nutrition {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.nutrition-item {
+  display: flex;
+  align-items: center;
+  background: #f7fafc;
+  padding: 12rpx 20rpx;
+  border-radius: 8rpx;
+  min-width: 140rpx;
+}
+
+.nutrition-label {
+  color: #8e9aaf;
+  font-size: 24rpx;
+  margin-right: 8rpx;
+}
+
+.nutrition-value {
+  color: #2d3748;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+/* 展开/收起指示器 */
+.expand-indicator {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 8rpx;
+}
+
+.expand-icon {
+  color: #8e9aaf;
+  font-size: 24rpx;
+  transition: transform 0.3s ease;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 40rpx;
+}
+
+.empty-text {
+  color: #8e9aaf;
+  font-size: 32rpx;
+  margin-bottom: 16rpx;
+}
+
+.empty-hint {
+  color: #cbd5e0;
+  font-size: 26rpx;
+}
+
+/* 浮动添加按钮 */
 .fab {
   position: fixed;
   right: 32rpx;
-  bottom: 160rpx;
-  width: 140rpx;
-  height: 140rpx;
-  background: #1a73e8;
-  color: #fff;
+  bottom: 40rpx;
+  width: 112rpx;
+  height: 112rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 20rpx rgba(26,115,232,0.4);
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.4);
+  z-index: 100;
+  transition: transform 0.2s ease;
 }
 
-.add-btn {
+.fab:active {
+  transform: scale(0.95);
+}
+
+.fab-icon {
+  color: #ffffff;
+  font-size: 56rpx;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* 弹窗 */
+.modal {
   position: fixed;
-  left: 20rpx;
-  right: 20rpx;
-  bottom: 40rpx;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  width: 640rpx;
+  max-height: 80vh;
+  background: #ffffff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100rpx);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #e2e8f0;
+}
+
+.modal-title {
+  color: #2d3748;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.modal-close {
+  color: #8e9aaf;
+  font-size: 48rpx;
+  line-height: 1;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body {
+  padding: 32rpx;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* 图片选择区域 */
+.image-section {
+  margin-bottom: 32rpx;
+}
+
+.image-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.image-item {
+  position: relative;
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+}
+
+.image-delete {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 48rpx;
+  height: 48rpx;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  font-size: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 0 0 12rpx;
+}
+
+.image-add-btn {
+  width: 180rpx;
+  height: 180rpx;
+  border: 2rpx dashed #cbd5e0;
+  border-radius: 12rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f7fafc;
+}
+
+.add-icon {
+  color: #8e9aaf;
+  font-size: 48rpx;
+  font-weight: 300;
+  line-height: 1;
+  margin-bottom: 8rpx;
+}
+
+.add-text {
+  color: #8e9aaf;
+  font-size: 24rpx;
+}
+
+/* 表单区域 */
+.form-section {
+  margin-bottom: 32rpx;
+}
+
+.form-label {
+  display: block;
+  color: #2d3748;
+  font-size: 28rpx;
+  font-weight: 500;
+  margin-bottom: 16rpx;
+}
+
+/* 餐次类型选择 */
+.meal-type-list {
+  display: flex;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
+.meal-type-item {
+  padding: 16rpx 32rpx;
+  background: #f7fafc;
+  border: 2rpx solid #e2e8f0;
+  border-radius: 12rpx;
+  color: #8e9aaf;
+  font-size: 28rpx;
+  text-align: center;
+  min-width: 120rpx;
+}
+
+.meal-type-item.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: #ffffff;
+}
+
+/* 日期选择器 */
+.picker-text {
+  padding: 24rpx 20rpx;
+  background: #f7fafc;
+  border: 2rpx solid #e2e8f0;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #2d3748;
+}
+
+.modal-footer {
+  display: flex;
+  padding: 24rpx 32rpx 32rpx;
+  border-top: 1rpx solid #e2e8f0;
+}
+
+.modal-footer .btn-cancel {
+  margin-right: 16rpx;
+}
+
+.btn-cancel,
+.btn-submit {
+  flex: 1;
   height: 88rpx;
-  background: #34a853;
-  color: #fff;
-  border-radius: 44rpx;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-cancel {
+  background: #f7fafc;
+  color: #8e9aaf;
+}
+
+.btn-submit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+.btn-submit[disabled] {
+  background: #cbd5e0;
+  color: #ffffff;
+  opacity: 0.6;
 }
 
 

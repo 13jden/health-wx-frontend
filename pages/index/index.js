@@ -73,6 +73,20 @@ Page({
   async getChildrenList() {
     console.log('开始获取儿童列表');
     try {
+      const storageChildren = wx.getStorageSync('children');
+      const storageCurrentId = wx.getStorageSync('currentChildId');
+      if (storageChildren && storageChildren.length > 0) {
+        console.log('优先使用storage中的儿童信息');
+        this.setData({
+          children: storageChildren,
+          currentChildId: storageCurrentId || storageChildren[0].id,
+          isPageReady: true
+        });
+        app.globalData.children = storageChildren;
+        app.globalData.nowChildId = storageCurrentId || storageChildren[0].id;
+        return;
+      }
+
       // 首先获取当前用户信息
       const userDetail = await getCurrentUserDetail();
       console.log('获取到的用户信息:', userDetail);

@@ -15,6 +15,7 @@
     "pages/change/change",
     "pages/height/height",
     "pages/weight/weight",
+    "pages/report/report",
     "pages/detail_h/detail_h",
     "pages/more/more"
   ],

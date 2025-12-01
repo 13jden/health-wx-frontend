@@ -1,0 +1,71 @@
+<view class="container">
+  <!-- 加载提示 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 报告列表 -->
+  <view wx:else class="report-list">
+    <view class="hero-card">
+      <view class="hero-info">
+        <text class="hero-title">智能健康报告</text>
+        <text class="hero-subtitle">近15天饮食与锻炼数据的综合洞察</text>
+        <text class="hero-tip">坚持打卡 · 自动生成 · 专家建议</text>
+      </view>
+      <view class="hero-action" bindtap="loadReports">
+        <text>{{loading ? '刷新中...' : '刷新报告'}}</text>
+      </view>
+    </view>
+
+    <block wx:for="{{reportList}}" wx:key="id">
+      <view class="report-item">
+        <view class="report-header">
+          <view class="report-title-row">
+            <view class="report-meta">
+              <text class="report-title">健康报告</text>
+              <text class="report-date">{{item.createTimeText || '未记录日期'}}</text>
+            </view>
+            <text class="report-tag">系统生成</text>
+          </view>
+          <view class="report-pills">
+            <view class="report-pill" wx:if="{{item.exerciseDays}}">
+              <text class="pill-label">锻炼</text>
+              <text class="pill-value">{{item.exerciseDays}}天</text>
+            </view>
+            <view class="report-pill" wx:if="{{item.dietDays}}">
+              <text class="pill-label">饮食</text>
+              <text class="pill-value">{{item.dietDays}}天</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="report-summary">
+          <text>{{item.contentText || '系统自动生成报告'}}</text>
+        </view>
+
+        <view class="report-divider"></view>
+
+        <view class="report-footer" bindtap="toggleReportDetail" data-index="{{index}}">
+          <view class="footer-left">
+            <text class="report-tip">{{item.expanded ? '收起详细建议' : '展开详细建议'}}</text>
+            <text class="report-hint">支持 Markdown 展示</text>
+          </view>
+          <text class="report-arrow">{{item.expanded ? '▲' : '▼'}}</text>
+        </view>
+
+        <view class="report-detail" wx:if="{{item.expanded}}">
+          <rich-text class="markdown-body" nodes="{{item.htmlContent}}"></rich-text>
+        </view>
+      </view>
+    </block>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{reportList.length === 0}}">
+      <text class="empty-title">暂无可展示的报告</text>
+      <text class="empty-text">{{emptyText}}</text>
+      <text class="empty-hint">坚持锻炼与饮食打卡达到15天后，将自动生成专属分析</text>
+      <view class="empty-button" bindtap="loadReports">立即刷新</view>
+    </view>
+  </view>
+</view>
+

@@ -71,15 +71,36 @@ const request = (options) => {
     const baseUrl = apiBase.endsWith('/') ? apiBase.slice(0, -1) : apiBase;
     const requestUrl = options.url.startsWith('/') ? options.url : `/${options.url}`;
     
-    wx.request({
+    // 如果skipJsonBody为true，不设置Content-Type为application/json，也不发送data
+    const skipJsonBody = options.skipJsonBody === true;
+    const headers = {
+      "Accept": "application/json; charset=utf-8",
+      "Authorization": tokenUser ? `Bearer ${tokenUser.token}` : ""
+    };
+    
+    // 构建请求配置
+    const requestConfig = {
       url: `${baseUrl}${requestUrl}`,
       method: options.method || "GET",
-      header: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Accept": "application/json; charset=utf-8",
-        "Authorization": tokenUser ? `Bearer ${tokenUser.token}` : ""
-      },
-      data: options.data || {},
+      header: headers
+    };
+    
+    // 处理请求体数据
+    if (skipJsonBody) {
+      // 跳过JSON body：不设置Content-Type，也不发送data（除非data不是null/undefined）
+      // 如果data不是null/undefined，可能是其他格式（如FormData），需要添加
+      if (options.data !== null && options.data !== undefined) {
+        requestConfig.data = options.data;
+      }
+      // 如果data为null/undefined，则不添加data字段，完全不发送请求体
+    } else {
+      // 正常情况：发送JSON数据
+      headers["Content-Type"] = "application/json; charset=utf-8";
+      requestConfig.data = options.data || {};
+    }
+    
+    wx.request({
+      ...requestConfig,
       success(res) {
         // 处理401未授权
         if (res.statusCode === 401) {

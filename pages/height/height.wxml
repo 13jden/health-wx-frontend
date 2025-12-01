@@ -15,7 +15,7 @@
   <view class="chart-section">
     <text class="chart-title">身高变化</text>
     <view class="charts">
-      <canvas canvas-id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-height" id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-height" class="charts" bindtouchstart="touchstart" bindtouchmove="touchmove" bindtouchend="touchend" />
+      <ec-canvas id="mychart-height" canvas-id="mychart-height" ec="{{ ec }}"></ec-canvas>
     </view>
   </view>
   
@@ -23,4 +23,5 @@
   <navigator url="/pages/detail_h/detail_h" class="learn-more">
     了解生长曲线图和百分位 >
   </navigator>
+
 </view>
