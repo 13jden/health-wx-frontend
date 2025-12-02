@@ -138,17 +138,17 @@
           </view>
         </view>
 
-        <!-- 日期选择 -->
+        <!-- 时间选择 -->
         <view class="form-section">
-          <text class="form-label">用餐日期</text>
-          <picker mode="date" value="{{recordDate}}" start="2020-01-01" end="2030-12-31" bindchange="onDateChange">
-            <view class="picker-text">{{recordDate || '请选择日期'}}</view>
+          <text class="form-label">用餐时间</text>
+          <picker mode="time" value="{{recordTime}}" bindchange="onTimeChange">
+            <view class="picker-text">{{recordTime || '请选择时间'}}</view>
           </picker>
         </view>
       </view>
       <view class="modal-footer">
         <button class="btn-cancel" bindtap="hideAddModal">取消</button>
-        <button class="btn-submit" bindtap="submitRecord" disabled="{{selectedImages.length === 0 || !mealType || submitting}}">
+        <button class="btn-submit" bindtap="submitRecord" disabled="{{selectedImages.length === 0 || !mealType || !recordTime || submitting}}">
           {{submitting ? (uploading ? '上传中...' : '提交中...') : '提交'}}
         </button>
       </view>

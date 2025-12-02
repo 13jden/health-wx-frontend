@@ -94,3 +94,139 @@
   color: #333;
   font-weight: 500;
 }
+
+/* 订阅消息弹窗 */
+.subscribe-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.subscribe-modal-content {
+  width: 600rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100rpx);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.subscribe-modal-header {
+  display: flex;
+  align-items: center;
+  padding: 40rpx 32rpx 24rpx;
+  border-bottom: 1rpx solid #e2e8f0;
+}
+
+.subscribe-icon {
+  width: 64rpx;
+  height: 64rpx;
+  margin-right: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+}
+
+.subscribe-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.subscribe-modal-body {
+  padding: 32rpx;
+}
+
+.subscribe-hint {
+  display: block;
+  font-size: 26rpx;
+  color: #8e9aaf;
+  margin-bottom: 32rpx;
+}
+
+.subscribe-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #e2e8f0;
+}
+
+.subscribe-item-label {
+  font-size: 30rpx;
+  color: #2d3748;
+}
+
+.subscribe-switch {
+  transform: scale(0.9);
+}
+
+.subscribe-checkbox-container {
+  padding: 24rpx 0;
+}
+
+.subscribe-checkbox-label {
+  display: flex;
+  align-items: center;
+}
+
+.subscribe-checkbox-text {
+  font-size: 26rpx;
+  color: #8e9aaf;
+  margin-left: 16rpx;
+}
+
+.subscribe-modal-footer {
+  display: flex;
+  border-top: 1rpx solid #e2e8f0;
+}
+
+.subscribe-btn {
+  flex: 1;
+  height: 96rpx;
+  border: none;
+  border-radius: 0;
+  font-size: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7fafc;
+}
+
+.reject-btn {
+  color: #4CAF50;
+  border-right: 1rpx solid #e2e8f0;
+}
+
+.allow-btn {
+  color: #cbd5e0;
+  background: #f7fafc;
+}

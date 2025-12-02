@@ -1,5 +1,6 @@
 const app = getApp();
 const { requireLogin, getCurrentUserDetail } = require('../../utils/auth.js');
+const { subscribeAllMessages } = require('../../utils/subscribeMessage.js');
 
 Page({
   data: {
@@ -11,7 +12,10 @@ Page({
       { imgUrl: "/assets/icons/ind2.jpg"},
       { imgUrl: "/assets/icons/ind1.jpg"}
     ],
-    isPageReady: false // 页面是否准备好
+    isPageReady: false, // 页面是否准备好
+    showSubscribeModal: false, // 是否显示订阅弹窗
+    checkInEnabled: false, // 打卡提醒开关状态
+    alwaysAllow: false // 总是保持以上选择
   },
  // 轮播图点击事件
  onSwiperTap(e) {
@@ -34,6 +38,9 @@ Page({
       // 获取全局的 userType，这里模拟从后台获取
       this.setUserType();
       this.getChildrenList();
+      
+      // 检查是否需要显示订阅弹窗（仅在登录成功后首次进入时）
+      this.checkAndShowSubscribeModal();
       
       // 添加调试信息
       console.log('页面数据初始化完成:', {
@@ -284,5 +291,117 @@ Page({
     
     this.setData({ userType });
     console.log('设置userType:', userType, '原始role:', role);
+  },
+
+  /**
+   * 检查并显示订阅弹窗（仅在登录成功后首次进入时）
+   */
+  checkAndShowSubscribeModal() {
+    // 检查是否支持订阅消息
+    if (!wx.canIUse('requestSubscribeMessage')) {
+      console.log('当前基础库版本不支持订阅消息');
+      return;
+    }
+
+    // 检查是否应该显示订阅弹窗（登录成功后设置的标记）
+    const shouldShow = wx.getStorageSync('shouldShowSubscribeModal');
+    if (!shouldShow) {
+      console.log('不需要显示订阅弹窗');
+      return;
+    }
+
+    // 检查是否已经选择过（包括总是允许）
+    const alwaysAllow = wx.getStorageSync('subscribeAlwaysAllow');
+    const hasShownBefore = wx.getStorageSync('subscribeModalShown');
+    
+    // 如果选择了总是允许，清除标记并不显示弹窗
+    if (alwaysAllow) {
+      console.log('用户已选择总是允许，不显示弹窗');
+      wx.removeStorageSync('shouldShowSubscribeModal');
+      return;
+    }
+
+    // 如果已经显示过，清除标记并不再显示
+    if (hasShownBefore) {
+      console.log('订阅弹窗已显示过，不再显示');
+      wx.removeStorageSync('shouldShowSubscribeModal');
+      return;
+    }
+
+    // 显示订阅弹窗
+    this.setData({
+      showSubscribeModal: true,
+      checkInEnabled: false,
+      alwaysAllow: false
+    });
+  },
+
+  /**
+   * 切换打卡提醒开关
+   */
+  toggleCheckIn(e) {
+    this.setData({
+      checkInEnabled: e.detail.value
+    });
+  },
+
+  /**
+   * 切换总是允许复选框
+   */
+  toggleAlwaysAllow(e) {
+    this.setData({
+      alwaysAllow: e.detail.value.length > 0
+    });
+  },
+
+  /**
+   * 拒绝订阅
+   */
+  onRejectSubscribe() {
+    // 如果选择了总是允许，保存设置
+    if (this.data.alwaysAllow) {
+      wx.setStorageSync('subscribeAlwaysAllow', false);
+    }
+    wx.setStorageSync('subscribeModalShown', true);
+    // 清除登录后显示弹窗的标记
+    wx.removeStorageSync('shouldShowSubscribeModal');
+    
+    this.setData({
+      showSubscribeModal: false
+    });
+  },
+
+  /**
+   * 阻止事件冒泡
+   */
+  stopPropagation() {
+    // 空函数，用于阻止点击弹窗内容时关闭弹窗
+  },
+
+  /**
+   * 允许订阅
+   */
+  async onAllowSubscribe() {
+    // 如果选择了总是允许，保存设置
+    if (this.data.alwaysAllow) {
+      wx.setStorageSync('subscribeAlwaysAllow', true);
+    }
+    wx.setStorageSync('subscribeModalShown', true);
+    // 清除登录后显示弹窗的标记
+    wx.removeStorageSync('shouldShowSubscribeModal');
+
+    this.setData({
+      showSubscribeModal: false
+    });
+
+    // 如果打卡提醒开关是开启的，则请求订阅（同时订阅打卡和报告消息）
+    if (this.data.checkInEnabled) {
+      try {
+        const result = await subscribeAllMessages();
+        console.log('订阅消息结果:', result);
+      } catch (error) {
+        console.error('订阅消息失败:', error);
+      }
+    }
   }
 });

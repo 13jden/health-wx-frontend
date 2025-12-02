@@ -1,5 +1,6 @@
 const app = getApp();
 const { getDietRecords, uploadDietImage, addQuickRecordByUrls } = require('../../api/diet');
+const { autoSubscribeMessage } = require('../../utils/subscribeMessage.js');
 
 Page({
   data: {
@@ -8,7 +9,7 @@ Page({
     selectedImages: [], // 已选择的图片路径（本地）
     uploadedImageUrls: [], // 已上传的图片URL
     mealType: '', // 餐次类型：早餐、午餐、晚餐、加餐
-    recordDate: '', // 记录日期
+    recordTime: '', // 用餐时间
     submitting: false,
     uploading: false,
     mealTypes: ['早餐', '午餐', '晚餐', '加餐']
@@ -16,6 +17,8 @@ Page({
 
   async onShow() {
     await this.loadData();
+    // 如果用户选择了总是允许，自动订阅打卡消息
+    await autoSubscribeMessage('checkin');
   },
 
   async loadData() {
@@ -151,16 +154,16 @@ Page({
 
   // 显示添加弹窗
   showAddModal() {
-    // 设置默认日期为今天
+    // 设置默认时间为当前时间
     const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const nowTime = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
     
     this.setData({
       showModal: true,
       selectedImages: [],
       uploadedImageUrls: [],
       mealType: '',
-      recordDate: todayStr
+      recordTime: nowTime
     });
   },
 
@@ -171,7 +174,7 @@ Page({
       selectedImages: [],
       uploadedImageUrls: [],
       mealType: '',
-      recordDate: ''
+      recordTime: ''
     });
   },
 
@@ -243,16 +246,16 @@ Page({
     this.setData({ mealType });
   },
 
-  // 选择日期
-  onDateChange(e) {
+  // 选择时间
+  onTimeChange(e) {
     this.setData({
-      recordDate: e.detail.value
+      recordTime: e.detail.value
     });
   },
 
   // 提交记录
   async submitRecord() {
-    const { selectedImages, mealType, recordDate, uploadedImageUrls } = this.data;
+    const { selectedImages, mealType, recordTime, uploadedImageUrls } = this.data;
     
     if (selectedImages.length === 0 && uploadedImageUrls.length === 0) {
       wx.showToast({ title: '请至少选择一张图片', icon: 'none' });
@@ -261,6 +264,11 @@ Page({
 
     if (!mealType) {
       wx.showToast({ title: '请选择餐次类型', icon: 'none' });
+      return;
+    }
+
+    if (!recordTime) {
+      wx.showToast({ title: '请选择用餐时间', icon: 'none' });
       return;
     }
 
@@ -297,8 +305,12 @@ Page({
       // 更新loading提示
       wx.showLoading({ title: '提交中...' });
 
+      // 自动使用当前日期
+      const today = new Date();
+      const recordDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
       // 提交记录
-      await addQuickRecordByUrls(childId, imageUrls, mealType, recordDate);
+      await addQuickRecordByUrls(childId, imageUrls, mealType, recordDate, recordTime);
       wx.hideLoading();
       wx.showToast({ title: '添加成功', icon: 'success' });
       this.hideAddModal();

@@ -53,6 +53,7 @@ Page({
     showModal: false,
     form: {},
     userType: app.globalData.userType || "parent",
+    selectedPoint: null,
     ec: {
       onInit: null
     }
@@ -120,6 +121,9 @@ Page({
           }, 100);
           
           return chart;
+        },
+        onTouchEnd(x, y, chartInstance) {
+          that.handleChartTouch(x, y, chartInstance);
         }
       }
     });
@@ -432,21 +436,193 @@ Page({
         name: childName
       });
       this.chart.setOption(option);
+      this.childSeriesIndex = option.series.length - 1;
+      this.childHeightData = option.series[this.childSeriesIndex]
+        ? option.series[this.childSeriesIndex].data
+        : [];
+      this.registerChartClickHandler();
     } catch (error) {
       console.error('Height页面渲染图表失败:', error);
+    }
+  },
+
+  registerChartClickHandler() {
+    if (!this.chart) {
+      return;
+    }
+    if (this.chartClickHandler) {
+      this.chart.off('click', this.chartClickHandler);
+    }
+    this.chartClickHandler = (params) => {
+      if (!params || !params.data || params.seriesName.indexOf('身高') === -1) {
+        return;
+      }
+      const dataItem = params.data;
+      const heightVal = typeof dataItem.value === 'number' ? dataItem.value.toFixed(1) : '--';
+      const weightVal = typeof dataItem.weight === 'number' ? dataItem.weight.toFixed(1) : null;
+
+      this.setData({
+        selectedPoint: {
+          ageLabel: (() => {
+            const ageVal = QUARTER_AGES[params.dataIndex];
+            return typeof ageVal === 'number' ? `${ageVal.toFixed(2)}岁` : '';
+          })(),
+          dateLabel: dataItem.dateLabel || '',
+          height: heightVal,
+          weight: weightVal
+        }
+      });
+    };
+    this.chart.on('click', this.chartClickHandler);
+  },
+
+  handleChartTouch(x, y, chartInstance) {
+    const chart = chartInstance || this.chart;
+    if (!chart || !this.childHeightData || !Array.isArray(this.childHeightData)) {
+      return;
+    }
+
+    try {
+      if (chart.containPixel && !chart.containPixel({ xAxisIndex: 0, yAxisIndex: 0 }, [x, y])) {
+        return;
+      }
+    } catch (error) {
+      console.warn('containPixel 检测失败:', error);
+    }
+
+    let ageValue = null;
+    try {
+      const axisValue = chart.convertFromPixel
+        ? chart.convertFromPixel({ xAxisIndex: 0 }, [x, y])
+        : null;
+      const parsedValue = Array.isArray(axisValue) ? axisValue[0] : axisValue;
+      ageValue = typeof parsedValue === 'string' ? parseFloat(parsedValue) : parsedValue;
+    } catch (error) {
+      console.warn('convertFromPixel 失败:', error);
+    }
+
+    let approxIdx = this.pickMeasurementIndexByAge(ageValue);
+    if ((approxIdx === null || approxIdx === undefined) && chart) {
+      approxIdx = this.findNearestPointByPixel(chart, x, y);
+    }
+    if (approxIdx === null || approxIdx === undefined) {
+      return;
+    }
+
+    const targetPoint = this.childHeightData[approxIdx];
+    if (!targetPoint || typeof targetPoint.value !== 'number') {
+      return;
+    }
+
+    const selectedPoint = {
+      ageLabel: QUARTER_AGES[approxIdx] ? `${QUARTER_AGES[approxIdx].toFixed(2)}岁` : '',
+      dateLabel: targetPoint.dateLabel || '',
+      height: targetPoint.value.toFixed(1),
+      weight: typeof targetPoint.weight === 'number' && !isNaN(targetPoint.weight)
+        ? targetPoint.weight.toFixed(1)
+        : null
+    };
+
+    this.setData({ selectedPoint });
+  },
+
+  pickMeasurementIndexByAge(ageValue) {
+    if (typeof ageValue !== 'number' || isNaN(ageValue)) {
+      return this.findNearestMeasurementIndex(null);
+    }
+
+    let closestIdx = -1;
+    let minDiff = Number.MAX_VALUE;
+    QUARTER_AGES.forEach((age, idx) => {
+      const diff = Math.abs(age - ageValue);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIdx = idx;
+      }
+    });
+
+    return this.findNearestMeasurementIndex(closestIdx);
+  },
+
+  findNearestMeasurementIndex(baseIdx) {
+    if (!Array.isArray(this.childHeightData) || this.childHeightData.length === 0) {
+      return null;
+    }
+
+    if (baseIdx === null || baseIdx === undefined || baseIdx < 0 || baseIdx >= QUARTER_AGES.length) {
+      // 找到第一个有数据的点
+      const firstIdx = this.childHeightData.findIndex(item => item && typeof item.value === 'number');
+      return firstIdx >= 0 ? firstIdx : null;
+    }
+
+    if (this.childHeightData[baseIdx] && typeof this.childHeightData[baseIdx].value === 'number') {
+      return baseIdx;
+    }
+
+    let offset = 1;
+    while (baseIdx - offset >= 0 || baseIdx + offset < this.childHeightData.length) {
+      const leftIdx = baseIdx - offset;
+      const rightIdx = baseIdx + offset;
+      if (leftIdx >= 0) {
+        const left = this.childHeightData[leftIdx];
+        if (left && typeof left.value === 'number') {
+          return leftIdx;
+        }
+      }
+      if (rightIdx < this.childHeightData.length) {
+        const right = this.childHeightData[rightIdx];
+        if (right && typeof right.value === 'number') {
+          return rightIdx;
+        }
+      }
+      offset++;
+    }
+
+    return null;
+  },
+
+  findNearestPointByPixel(chart, x, y) {
+    if (!chart || !Array.isArray(this.childHeightData)) {
+      return null;
+    }
+    let closestIdx = null;
+    let minDistance = Number.MAX_VALUE;
+    this.childHeightData.forEach((point, idx) => {
+      if (!point || typeof point.value !== 'number' || typeof QUARTER_AGES[idx] !== 'number') {
+        return;
+      }
+      try {
+        const pixelX = chart.convertToPixel({ xAxisIndex: 0 }, QUARTER_AGES[idx]);
+        const pixelY = chart.convertToPixel({ yAxisIndex: 0 }, point.value);
+        if (typeof pixelX !== 'number' || typeof pixelY !== 'number') {
+          return;
+        }
+        const dx = pixelX - x;
+        const dy = pixelY - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestIdx = idx;
+        }
+      } catch (error) {
+        console.warn('convertToPixel 失败:', error);
+      }
+    });
+
+    return minDistance <= 40 ? closestIdx : null;
+  },
+
+  onUnload() {
+    if (this.chart && this.chartClickHandler) {
+      this.chart.off('click', this.chartClickHandler);
+      this.chartClickHandler = null;
     }
   },
 
   buildHeightChartOption(chartData) {
     // X轴数据：0.5岁间隔的年龄点
     const LAST_INDEX = QUARTER_AGES.length - 1;
-    const xAxisData = QUARTER_AGES.map(age => {
-      // 整岁数显示数字，不带单位；0.5岁保持空
-      if (age % 1 === 0) {
-        return `${Math.floor(age)}`;
-      }
-      return '';
-    });
+    const xAxisData = QUARTER_AGES.map(age => age.toFixed(2));
     
     // 构建标准百分位曲线数据
     const percentileSeries = PERCENTILE_ORDER.map(p => ({
@@ -494,7 +670,15 @@ Page({
 
       const heightVal = measurement.height !== undefined ? parseFloat(measurement.height) : null;
       if (!isNaN(heightVal)) {
-        childHeightData[closestIdx] = parseFloat(heightVal.toFixed(1));
+        const normalizedHeight = parseFloat(heightVal.toFixed(1));
+        childHeightData[closestIdx] = {
+          value: normalizedHeight,
+          dateLabel: measurement.dateLabel,
+          rawDate: measurement.rawDate,
+          weight: typeof measurement.weight === 'number' && !isNaN(measurement.weight)
+            ? parseFloat(measurement.weight.toFixed(1))
+            : null
+        };
       }
     });
 
@@ -521,6 +705,17 @@ Page({
     return {
       tooltip: {
         trigger: 'axis',
+        triggerOn: 'mousemove|click|touchstart|touchmove',
+        alwaysShowContent: true,
+        confine: true,
+        enterable: true,
+        axisPointer: {
+          type: 'line',
+          snap: true
+        },
+        backgroundColor: 'rgba(50, 50, 50, 0.85)',
+        borderWidth: 0,
+        padding: [8, 12],
         renderMode: 'richText',
         formatter: function (params) {
           let result = '';
@@ -529,8 +724,28 @@ Page({
             const ageLabel = QUARTER_AGES[ageIndex] ? `${QUARTER_AGES[ageIndex].toFixed(2)}岁` : '';
             result = ageLabel + '\n';
             params.forEach(param => {
-              if (param.value !== null && param.value !== undefined) {
-                result += `${param.seriesName}: ${param.value.toFixed(1)}cm\n`;
+              if (param.value === null || param.value === undefined) {
+                return;
+              }
+              const dataValue = (param.data && typeof param.data === 'object' && typeof param.data.value === 'number')
+                ? param.data.value
+                : (typeof param.value === 'number' ? param.value : null);
+              if (dataValue === null || dataValue === undefined || isNaN(dataValue)) {
+                return;
+              }
+              if (param.seriesName.indexOf('身高') > -1 && param.data && typeof param.data === 'object') {
+                const dateLabel = param.data.dateLabel ? `测量日期：${param.data.dateLabel}` : '';
+                const hasWeight = typeof param.data.weight === 'number' && !isNaN(param.data.weight);
+                const weightLabel = hasWeight ? `体重：${param.data.weight.toFixed(1)}kg` : '';
+                result += `${param.seriesName}: ${dataValue.toFixed(1)}cm\n`;
+                if (dateLabel) {
+                  result += `${dateLabel}\n`;
+                }
+                if (weightLabel) {
+                  result += `${weightLabel}\n`;
+                }
+              } else {
+                result += `${param.seriesName}: ${dataValue.toFixed(1)}cm\n`;
               }
             });
           }
@@ -555,13 +770,15 @@ Page({
         data: xAxisData,
         axisLabel: {
           formatter: function (value, index) {
-            if (!value) {
+            const num = parseFloat(value);
+            if (isNaN(num)) {
               return '';
             }
-            if (index === LAST_INDEX) {
-              return `${value}岁`;
+            if (num % 1 === 0) {
+              const label = `${Math.floor(num)}`;
+              return index === LAST_INDEX ? `${label}岁` : label;
             }
-            return value;
+            return '';
           },
           interval: 0,
           rotate: 0

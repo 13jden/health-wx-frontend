@@ -19,6 +19,26 @@
     </view>
   </view>
   
+  <view wx:if="{{selectedPoint}}" class="point-detail">
+    <text class="detail-title">选中数据详情</text>
+    <view class="detail-row">
+      <text class="label">年龄</text>
+      <text class="value">{{selectedPoint.ageLabel || '—'}}</text>
+    </view>
+    <view class="detail-row">
+      <text class="label">测量日期</text>
+      <text class="value">{{selectedPoint.dateLabel || '—'}}</text>
+    </view>
+    <view class="detail-row">
+      <text class="label">身高</text>
+      <text class="value">{{selectedPoint.height || '—'}} cm</text>
+    </view>
+    <view class="detail-row" wx:if="{{selectedPoint.weight}}">
+      <text class="label">体重</text>
+      <text class="value">{{selectedPoint.weight}} kg</text>
+    </view>
+  </view>
+  
   <!-- 了解生长曲线 -->
   <navigator url="/pages/detail_h/detail_h" class="learn-more">
     了解生长曲线图和百分位 >

@@ -8,7 +8,7 @@
  * @param {Object} options - 配置选项
  * @returns {Promise} 订阅结果
  */
-export function requestSubscribeMessage(tmplIds, options = {}) {
+function requestSubscribeMessage(tmplIds, options = {}) {
   return new Promise((resolve, reject) => {
     // 检查基础库版本
     if (wx.canIUse('requestSubscribeMessage')) {
@@ -41,10 +41,68 @@ export function requestSubscribeMessage(tmplIds, options = {}) {
  * @param {Object} options - 配置选项
  * @returns {Promise} 订阅结果
  */
-export function subscribeCheckInMessage(options = {}) {
+function subscribeCheckInMessage(options = {}) {
   const CHECK_IN_TEMPLATE_ID = '4OFcdPl680DgcRzmHDs2Jh-DQCyYlkZ2vRfXZ3-ENCk';
   
   return requestSubscribeMessage([CHECK_IN_TEMPLATE_ID], options);
+}
+
+/**
+ * 订阅报告消息
+ * @param {Object} options - 配置选项
+ * @returns {Promise} 订阅结果
+ */
+function subscribeReportMessage(options = {}) {
+  const REPORT_TEMPLATE_ID = 'nDQJiv9HYI0zCTjMmikAkwNULb-HBuFrgXAun3EhyH0';
+  
+  return requestSubscribeMessage([REPORT_TEMPLATE_ID], options);
+}
+
+/**
+ * 同时订阅打卡和报告消息
+ * @param {Object} options - 配置选项
+ * @returns {Promise} 订阅结果
+ */
+function subscribeAllMessages(options = {}) {
+  const CHECK_IN_TEMPLATE_ID = '4OFcdPl680DgcRzmHDs2Jh-DQCyYlkZ2vRfXZ3-ENCk';
+  const REPORT_TEMPLATE_ID = 'nDQJiv9HYI0zCTjMmikAkwNULb-HBuFrgXAun3EhyH0';
+  
+  return requestSubscribeMessage([CHECK_IN_TEMPLATE_ID, REPORT_TEMPLATE_ID], options);
+}
+
+/**
+ * 自动订阅消息（如果用户选择了总是允许）
+ * @param {string} type - 订阅类型：'checkin' | 'report' | 'all'
+ * @returns {Promise} 订阅结果
+ */
+async function autoSubscribeMessage(type = 'all') {
+  // 检查是否选择了总是允许
+  const alwaysAllow = wx.getStorageSync('subscribeAlwaysAllow');
+  if (!alwaysAllow) {
+    console.log('用户未选择总是允许，跳过自动订阅');
+    return { skipped: true };
+  }
+
+  try {
+    let result;
+    switch (type) {
+      case 'checkin':
+        result = await subscribeCheckInMessage();
+        break;
+      case 'report':
+        result = await subscribeReportMessage();
+        break;
+      case 'all':
+      default:
+        result = await subscribeAllMessages();
+        break;
+    }
+    console.log('自动订阅成功:', result);
+    return result;
+  } catch (error) {
+    console.error('自动订阅失败:', error);
+    return { error: error.message || '订阅失败' };
+  }
 }
 
 /**
@@ -52,7 +110,7 @@ export function subscribeCheckInMessage(options = {}) {
  * @param {Array} tmplIds - 模板ID数组
  * @returns {Promise} 订阅状态
  */
-export function checkSubscribeStatus(tmplIds) {
+function checkSubscribeStatus(tmplIds) {
   return new Promise((resolve, reject) => {
     wx.getSetting({
       success: (res) => {
@@ -72,7 +130,7 @@ export function checkSubscribeStatus(tmplIds) {
  * 显示订阅消息引导弹窗
  * @param {Object} options - 配置选项
  */
-export function showSubscribeGuide(options = {}) {
+function showSubscribeGuide(options = {}) {
   const {
     title = '开启消息提醒',
     content = '为了及时提醒您进行健康打卡，建议开启消息订阅',
@@ -103,7 +161,7 @@ export function showSubscribeGuide(options = {}) {
  * @param {string} templateId - 模板ID
  * @returns {Object} 处理结果
  */
-export function handleSubscribeResult(result, templateId) {
+function handleSubscribeResult(result, templateId) {
   const status = result[templateId];
   
   switch (status) {
@@ -139,3 +197,14 @@ export function handleSubscribeResult(result, templateId) {
       };
   }
 }
+
+module.exports = {
+  requestSubscribeMessage,
+  subscribeCheckInMessage,
+  subscribeReportMessage,
+  subscribeAllMessages,
+  autoSubscribeMessage,
+  checkSubscribeStatus,
+  showSubscribeGuide,
+  handleSubscribeResult
+};

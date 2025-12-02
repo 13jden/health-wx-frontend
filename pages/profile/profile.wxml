@@ -10,6 +10,11 @@
         <image class="arrow-icon" src="/assets/icons/arrow-right.png"></image>
       </view>
     </block>
+    <view class="menu-item" bindtap="onCancelSubscribe">
+      <image class="menu-icon" src="/assets/icons/info.png"></image>
+      <text class="menu-text">取消消息订阅</text>
+      <image class="arrow-icon" src="/assets/icons/arrow-right.png"></image>
+    </view>
   </view>
 
   <button class="logout-btn" bindtap="onLogout">退出登录</button>

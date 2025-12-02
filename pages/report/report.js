@@ -1,6 +1,7 @@
 const app = getApp();
 const reportApi = require('../../api/report');
 const { parseMarkdownAdvanced } = require('../../utils/markdown');
+const { autoSubscribeMessage } = require('../../utils/subscribeMessage.js');
 
 Page({
   data: {
@@ -16,6 +17,8 @@ Page({
   onShow() {
     // 每次显示时刷新数据
     this.loadReports();
+    // 如果用户选择了总是允许，自动订阅报告消息
+    autoSubscribeMessage('report');
   },
 
   async loadReports() {

@@ -1,6 +1,5 @@
 const app = getApp(); // 获取全局变量
 const { request } = require('../../utils/request.js');
-const { subscribeCheckInMessage, showSubscribeGuide, handleSubscribeResult } = require('../../utils/subscribeMessage.js');
 
 Page({
   data: {
@@ -83,8 +82,11 @@ Page({
         
         console.log('登录成功，准备跳转，userType:', userType);
         
-        // 登录成功后，先尝试订阅打卡消息
-        this.handleSubscribeMessage();
+        // 标记需要显示订阅弹窗（仅首次登录）
+        const hasShownBefore = wx.getStorageSync('subscribeModalShown');
+        if (!hasShownBefore) {
+          wx.setStorageSync('shouldShowSubscribeModal', true);
+        }
         
         // 根据用户角色跳转到不同页面（不显示toast，直接跳转）
         if (tokenUser.role === 'DOCTOR') {
@@ -122,87 +124,5 @@ Page({
     wx.navigateTo({
       url: `/pages/register/register`
     });
-  },
-
-  /**
-   * 处理订阅消息
-   */
-  handleSubscribeMessage() {
-    console.log('开始处理订阅消息');
-    
-    // 检查是否支持订阅消息
-    if (!wx.canIUse('requestSubscribeMessage')) {
-      console.log('当前基础库版本不支持订阅消息，跳过处理');
-      return;
-    }
-    
-    // 延迟一点时间，确保页面跳转不会受到影响
-    setTimeout(() => {
-      this.showSubscribeGuide();
-    }, 200);
-  },
-
-  /**
-   * 显示订阅消息引导
-   */
-  showSubscribeGuide() {
-    // 先检查是否支持订阅消息
-    if (!wx.canIUse('requestSubscribeMessage')) {
-      console.log('当前基础库版本不支持订阅消息，跳过引导');
-      return;
-    }
-    
-    showSubscribeGuide({
-      title: '开启打卡提醒',
-      content: '为了及时提醒您进行健康打卡，建议开启消息订阅',
-      confirmText: '立即开启',
-      cancelText: '暂不开启',
-      onConfirm: () => {
-        this.requestSubscribeMessage();
-      },
-      onCancel: () => {
-        console.log('用户选择暂不开启订阅消息');
-      }
-    });
-  },
-
-  /**
-   * 请求订阅消息
-   */
-  async requestSubscribeMessage() {
-    try {
-      console.log('开始请求订阅消息');
-      const result = await subscribeCheckInMessage();
-      
-      const CHECK_IN_TEMPLATE_ID = '4OFcdPl680DgcRzmHDs2Jh-DQCyYlkZ2vRfXZ3-ENCk';
-      const handleResult = handleSubscribeResult(result, CHECK_IN_TEMPLATE_ID);
-      
-      console.log('订阅消息结果:', handleResult);
-      
-      if (handleResult.success) {
-        wx.showToast({
-          title: '订阅成功',
-          icon: 'success',
-          duration: 2000
-        });
-      } else {
-        console.log('订阅失败:', handleResult.message);
-        // 不显示错误提示，避免影响用户体验
-      }
-      
-    } catch (error) {
-      console.error('订阅消息失败:', error);
-      
-      // 根据错误类型给出不同提示
-      if (error.errCode === 20004) {
-        console.log('用户关闭了主开关，无法进行订阅');
-      } else if (error.errCode === 20005) {
-        console.log('小程序被禁封');
-      } else if (error.errCode === -1) {
-        console.log('当前基础库版本不支持订阅消息');
-      } else {
-        console.log('订阅消息请求失败:', error.errMsg);
-      }
-    }
   }
 });

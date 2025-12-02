@@ -61,15 +61,21 @@ const uploadDietImage = async (filePath) => {
  * @param {Array<string>} imageList - 图片URL列表
  * @param {string} mealType - 餐次类型
  * @param {string} recordDate - 记录日期 (YYYY-MM-DD格式)
+ * @param {string} recordTime - 用餐时间 (HH:mm格式，可选)
  * @returns {Promise} 返回添加的记录详情
  */
-const addQuickRecordByUrls = async (childId, imageList, mealType, recordDate) => {
+const addQuickRecordByUrls = async (childId, imageList, mealType, recordDate, recordTime) => {
   // 构建请求体 JSON 对象，对应 DietRecordDto.QuickInput
   const requestBody = {
     imageList: imageList || [],
     mealType: mealType,
     recordDate: recordDate
   };
+  
+  // 如果提供了用餐时间，添加到请求体中
+  if (recordTime) {
+    requestBody.recordTime = recordTime;
+  }
   
   console.log('发送请求数据:', JSON.stringify(requestBody, null, 2));
   console.log('请求URL:', `/diet-record/${childId}`);

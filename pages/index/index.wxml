@@ -59,4 +59,33 @@
       </block>
     </view>
   </view>
+
+  <!-- 订阅消息弹窗 -->
+  <view class="subscribe-modal" wx:if="{{showSubscribeModal}}" bindtap="onRejectSubscribe">
+    <view class="subscribe-modal-content" catchtap="stopPropagation">
+      <view class="subscribe-modal-header">
+        <view class="subscribe-icon">📢</view>
+        <text class="subscribe-title">打卡提醒 申请</text>
+      </view>
+      <view class="subscribe-modal-body">
+        <text class="subscribe-hint">发送一次以下消息</text>
+        <view class="subscribe-item">
+          <text class="subscribe-item-label">打卡提醒</text>
+          <switch class="subscribe-switch" checked="{{checkInEnabled}}" bindchange="toggleCheckIn" color="#4CAF50"></switch>
+        </view>
+        <view class="subscribe-checkbox-container">
+          <checkbox-group bindchange="toggleAlwaysAllow">
+            <label class="subscribe-checkbox-label">
+              <checkbox value="always" checked="{{alwaysAllow}}" color="#4CAF50"></checkbox>
+              <text class="subscribe-checkbox-text">总是保持以上选择</text>
+            </label>
+          </checkbox-group>
+        </view>
+      </view>
+      <view class="subscribe-modal-footer">
+        <button class="subscribe-btn reject-btn" bindtap="onRejectSubscribe">拒绝</button>
+        <button class="subscribe-btn allow-btn" bindtap="onAllowSubscribe">允许</button>
+      </view>
+    </view>
+  </view>
 </view>

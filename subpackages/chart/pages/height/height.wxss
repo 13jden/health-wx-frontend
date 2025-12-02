@@ -134,6 +134,43 @@
   width: 100%;
   height: 100%;
 }
+
+.point-detail {
+  margin-top: 20rpx;
+  background: #fff;
+  padding: 20rpx;
+  border-radius: 10rpx;
+  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.08);
+}
+
+.detail-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  display: block;
+  color: #333;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.label {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.value {
+  font-size: 28rpx;
+  color: #111;
+}
 .learn-more {
   display: block;
   text-align: center;
