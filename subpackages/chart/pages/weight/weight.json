@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "体重曲线",
+  "usingComponents": {
+    "ec-canvas": "/subpackages/chart/components/ec-canvas/ec-canvas"
+  }
+}
+

@@ -125,6 +125,11 @@
   width: 100%;
   height: 500px; /* 增加高度 */
 }
+
+.charts ec-canvas {
+  width: 100%;
+  height: 100%;
+}
 .learn-more {
   display: block;
   text-align: center;
@@ -133,3 +138,54 @@
   color: #007aff; /* 微信默认蓝色 */
   text-decoration: underline;
 }
+
+/* 自定义 Tooltip 悬浮框样式（类似原生 tooltip） */
+.tooltip-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+.tooltip-box {
+  position: absolute;
+  background: rgba(50, 50, 50, 0.95);
+  border-radius: 8rpx;
+  padding: 12rpx 16rpx;
+  min-width: 200rpx;
+  max-width: 400rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  transform: translate(-50%, -100%);
+  /* 提高不透明度，增强视觉层次 */
+  backdrop-filter: blur(10rpx);
+}
+
+.tooltip-title {
+  font-size: 24rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 8rpx;
+  padding-bottom: 6rpx;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.3);
+}
+
+.tooltip-content {
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.tooltip-item {
+  padding: 4rpx 0;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
+.tooltip-text {
+  color: #fff;
+  word-break: break-all;
+}
+

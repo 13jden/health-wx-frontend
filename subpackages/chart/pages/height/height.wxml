@@ -19,29 +19,20 @@
     </view>
   </view>
   
-  <view wx:if="{{selectedPoint}}" class="point-detail">
-    <text class="detail-title">选中数据详情</text>
-    <view class="detail-row">
-      <text class="label">年龄</text>
-      <text class="value">{{selectedPoint.ageLabel || '—'}}</text>
-    </view>
-    <view class="detail-row">
-      <text class="label">测量日期</text>
-      <text class="value">{{selectedPoint.dateLabel || '—'}}</text>
-    </view>
-    <view class="detail-row">
-      <text class="label">身高</text>
-      <text class="value">{{selectedPoint.height || '—'}} cm</text>
-    </view>
-    <view class="detail-row" wx:if="{{selectedPoint.weight}}">
-      <text class="label">体重</text>
-      <text class="value">{{selectedPoint.weight}} kg</text>
-    </view>
-  </view>
-  
   <!-- 了解生长曲线 -->
   <navigator url="/pages/detail_h/detail_h" class="learn-more">
     了解生长曲线图和百分位 >
   </navigator>
+</view>
 
+<!-- 自定义 Tooltip 悬浮框（放在 container 外，避免被 canvas 穿透） -->
+<view class="tooltip-overlay" wx:if="{{showTooltip}}" bindtap="closeTooltip">
+  <view class="tooltip-box" style="left: {{tooltipData.x}}px; top: {{tooltipData.y}}px;" catchtap="stopPropagation">
+    <view class="tooltip-title">{{tooltipData.ageLabel}}</view>
+    <view class="tooltip-content">
+      <view class="tooltip-item" wx:for="{{tooltipData.items}}" wx:key="index">
+        <text class="tooltip-text">{{item.name}}: {{item.value}}</text>
+      </view>
+    </view>
+  </view>
 </view>

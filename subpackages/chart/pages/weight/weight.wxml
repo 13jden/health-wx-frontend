@@ -11,11 +11,11 @@
   
   <text class="name">{{child.name}}体重变化趋势</text>
 
-  <!-- 体重图表 -->
+  <!-- 体重图表（ECharts） -->
   <view class="chart-section">
     <text class="chart-title">体重变化</text>
     <view class="charts">
-      <canvas canvas-id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-weight" id="NwbCBhcNOuQXlMCxznViehwgujHjDjVo-weight" class="charts" bindtouchstart="touchstart" bindtouchmove="touchmove" bindtouchend="touchend" />
+      <ec-canvas id="mychart-weight" canvas-id="mychart-weight" ec="{{ ec }}"></ec-canvas>
     </view>
   </view>
   
@@ -24,3 +24,16 @@
     了解生长曲线图和百分位 >
   </navigator>
 </view>
+
+<!-- 自定义 Tooltip 悬浮框（放在 container 外，避免被 canvas 穿透） -->
+<view class="tooltip-overlay" wx:if="{{showTooltip}}" bindtap="closeTooltip">
+  <view class="tooltip-box" style="left: {{tooltipData.x}}px; top: {{tooltipData.y}}px;" catchtap="stopPropagation">
+    <view class="tooltip-title">{{tooltipData.ageLabel}}</view>
+    <view class="tooltip-content">
+      <view class="tooltip-item" wx:for="{{tooltipData.items}}" wx:key="index">
+        <text class="tooltip-text">{{item.name}}: {{item.value}}</text>
+      </view>
+    </view>
+  </view>
+</view>
+

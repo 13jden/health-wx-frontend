@@ -41,7 +41,7 @@
           <image src="/assets/icons/height.png" class="icon" />
           <text class="menu-text">身高曲线</text>
         </navigator>
-        <navigator url="/pages/weight/weight" class="menu-item">
+        <navigator url="/subpackages/chart/pages/weight/weight" class="menu-item">
           <image src="/assets/icons/weight.png" class="icon" />
           <text class="menu-text">体重曲线</text>
         </navigator>

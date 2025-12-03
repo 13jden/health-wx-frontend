@@ -13,7 +13,6 @@
     "pages/children/children",
     "pages/details/details",
     "pages/change/change",
-    "pages/weight/weight",
     "pages/report/report",
     "pages/detail_h/detail_h",
     "pages/more/more"
@@ -53,7 +52,8 @@
     {
       "root": "subpackages/chart",
       "pages": [
-        "pages/height/height"
+        "pages/height/height",
+        "pages/weight/weight"
       ]
     }
   ],

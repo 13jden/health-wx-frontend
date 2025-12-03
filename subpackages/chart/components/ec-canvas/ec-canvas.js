@@ -86,84 +86,97 @@ Component({
         });
     },
 
-    // 触摸开始事件
-    touchStart: function(e) {
-      // 不处理，避免影响性能
-    },
+    // ===== 触摸事件映射到 ECharts（官方推荐写法，保证 tooltip / axisPointer 正常工作） =====
+    // 将小程序 touch 坐标转换为相对于 canvas 的坐标，再映射到 zr 事件
+    touchStart: function (e) {
+      if (!this.chart) return;
+      const zr = this.chart.getZr();
+      if (!zr || !zr.handler) return;
 
-    // 触摸移动事件
-    touchMove: function(e) {
-      // 不处理，避免影响性能
-    },
+      const touch = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
+      if (!touch) return;
 
-    // 触摸结束事件
-    touchEnd: function(e) {
-      console.log('=== Canvas 触摸结束 ===', e);
-      this.handleTouch(e, 'touchend');
-    },
-
-    // 处理触摸事件
-    handleTouch: function(e, type) {
-      // 只在触摸结束时处理，避免频繁查询影响性能
-      if (type !== 'touchend') {
-        return;
-      }
-
-      if (!this.chart) {
-        console.log('图表未初始化，无法处理触摸事件');
-        return;
-      }
-
-      // 获取触摸点
-      const touch = e.changedTouches && e.changedTouches[0];
-      if (!touch) {
-        console.log('无法获取触摸点信息');
-        return;
-      }
-
-      // 使用保存的 canvas 信息或重新查询
-      const that = this;
       const query = wx.createSelectorQuery().in(this);
-      query.select('#ec-canvas')
-        .boundingClientRect()
-        .exec((res) => {
-          if (!res || !res[0]) {
-            console.log('无法获取 canvas 位置信息');
-            return;
-          }
+      query.select('#ec-canvas').boundingClientRect().exec(res => {
+        if (!res || !res[0]) return;
+        const rect = res[0];
+        const zrX = touch.clientX - rect.left;
+        const zrY = touch.clientY - rect.top;
 
-          const rect = res[0];
-          // 计算相对于 canvas 的坐标
-          const x = touch.clientX - rect.left;
-          const y = touch.clientY - rect.top;
-
-          console.log('触摸坐标:', { x, y, clientX: touch.clientX, clientY: touch.clientY, rectWidth: rect.width, rectHeight: rect.height });
-
-          // 确保坐标在有效范围内
-          if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
-            console.log('触摸坐标超出 canvas 范围');
-            return;
-          }
-
-          // 使用 ECharts 的 dispatchAction 触发 tooltip
-          try {
-            // 触发 tooltip 显示
-            that.chart.dispatchAction({
-              type: 'showTip',
-              x: x,
-              y: y
-            });
-
-            console.log('已触发 ECharts showTip action，坐标:', { x, y });
-          } catch (error) {
-            console.error('触发 ECharts action 失败:', error);
-          }
-
-          // 手动触发点击事件回调
-          if (that.properties.ec && that.properties.ec.onTouchEnd) {
-            that.properties.ec.onTouchEnd(x, y, that.chart);
-          }
+        zr.handler.dispatch('mousedown', {
+          zrX,
+          zrY,
+          preventDefault: function () {},
+          stopImmediatePropagation: function () {}
         });
+        zr.handler.dispatch('mousemove', {
+          zrX,
+          zrY,
+          preventDefault: function () {},
+          stopImmediatePropagation: function () {}
+        });
+      });
+    },
+
+    touchMove: function (e) {
+      if (!this.chart) return;
+      const zr = this.chart.getZr();
+      if (!zr || !zr.handler) return;
+
+      const touch = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
+      if (!touch) return;
+
+      const query = wx.createSelectorQuery().in(this);
+      query.select('#ec-canvas').boundingClientRect().exec(res => {
+        if (!res || !res[0]) return;
+        const rect = res[0];
+        const zrX = touch.clientX - rect.left;
+        const zrY = touch.clientY - rect.top;
+
+        zr.handler.dispatch('mousemove', {
+          zrX,
+          zrY,
+          preventDefault: function () {},
+          stopImmediatePropagation: function () {}
+        });
+      });
+    },
+
+    touchEnd: function (e) {
+      console.log('=== Canvas 触摸结束 ===', e);
+
+      if (!this.chart) return;
+      const zr = this.chart.getZr();
+      if (!zr || !zr.handler) return;
+
+      const touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
+      if (!touch) return;
+
+      const query = wx.createSelectorQuery().in(this);
+      query.select('#ec-canvas').boundingClientRect().exec(res => {
+        if (!res || !res[0]) return;
+        const rect = res[0];
+        const zrX = touch.clientX - rect.left;
+        const zrY = touch.clientY - rect.top;
+
+        zr.handler.dispatch('mouseup', {
+          zrX,
+          zrY,
+          preventDefault: function () {},
+          stopImmediatePropagation: function () {}
+        });
+        zr.handler.dispatch('click', {
+          zrX,
+          zrY,
+          preventDefault: function () {},
+          stopImmediatePropagation: function () {}
+        });
+
+        // 如果页面还有自定义回调，依然调用一下（例如想知道点击坐标）
+        if (this.properties.ec && typeof this.properties.ec.onTouchEnd === 'function') {
+          this.properties.ec.onTouchEnd(zrX, zrY, this.chart);
+        }
+      });
     }
   }
 });

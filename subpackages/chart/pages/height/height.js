@@ -53,9 +53,15 @@ Page({
     showModal: false,
     form: {},
     userType: app.globalData.userType || "parent",
-    selectedPoint: null,
     ec: {
       onInit: null
+    },
+    showTooltip: false,
+    tooltipData: {
+      ageLabel: '',
+      items: [],
+      x: 0,
+      y: 0
     }
   },
 
@@ -122,8 +128,13 @@ Page({
           
           return chart;
         },
-        onTouchEnd(x, y, chartInstance) {
-          that.handleChartTouch(x, y, chartInstance);
+        // 自定义触摸结束回调：根据点击位置计算并显示该年龄点的多条曲线数据
+        onTouchEnd: function (x, y, chart) {
+          if (!chart) {
+            chart = that.chart;
+          }
+          if (!chart) return;
+          that.handleChartTouch(x, y, chart);
         }
       }
     });
@@ -369,6 +380,101 @@ Page({
     this.setData({ showModal: false });
   },
 
+  // 处理图表触摸事件：根据点击的横坐标，计算该年龄点所有曲线的数据并通过自定义 tooltip 显示
+  handleChartTouch(x, y, chart) {
+    try {
+      const option = chart.getOption() || {};
+      const seriesArr = option.series || [];
+      if (!seriesArr.length) return;
+
+      const pointInPixel = [x, y];
+      if (!chart.containPixel || !chart.convertFromPixel) {
+        return;
+      }
+
+      // 使用最后一条系列（儿童身高线）作为基准系列
+      const baseSeriesIndex = seriesArr.length - 1;
+      if (!chart.containPixel({ gridIndex: 0 }, pointInPixel)) {
+        return;
+      }
+      const dataIndexArr = chart.convertFromPixel({ seriesIndex: baseSeriesIndex }, pointInPixel);
+      const dataIndex = Array.isArray(dataIndexArr) ? dataIndexArr[0] : dataIndexArr;
+      if (dataIndex === undefined || dataIndex === null || isNaN(dataIndex)) {
+        return;
+      }
+
+      // 获取图表容器的位置，计算 tooltip 的绝对位置
+      const query = wx.createSelectorQuery().in(this);
+      query.select('.chart-section').boundingClientRect((rect) => {
+        if (!rect) return;
+        
+        const ageLabel = QUARTER_AGES[dataIndex] ? `${QUARTER_AGES[dataIndex].toFixed(2)}岁` : '';
+        const items = [];
+
+        seriesArr.forEach((s) => {
+          const raw = (s.data || [])[dataIndex];
+          if (raw === null || raw === undefined) return;
+          let v;
+          let extraInfo = '';
+          
+          if (typeof raw === 'object') {
+            v = typeof raw.value === 'number' ? raw.value : null;
+            // 如果是儿童数据，添加额外信息
+            if (s.name.indexOf('身高') > -1 && raw.dateLabel) {
+              extraInfo = ` (${raw.dateLabel})`;
+              if (typeof raw.weight === 'number' && !isNaN(raw.weight)) {
+                extraInfo += ` 体重:${raw.weight.toFixed(1)}kg`;
+              }
+            }
+          } else {
+            v = typeof raw === 'number' ? raw : null;
+          }
+          if (v === null || v === undefined || isNaN(v)) return;
+          
+          items.push({
+            name: s.name,
+            value: `${v.toFixed(1)}cm${extraInfo}`
+          });
+        });
+
+        if (!items.length) return;
+
+        // 计算 tooltip 位置（相对于页面）
+        const tooltipX = rect.left + x;
+        const tooltipY = rect.top + y;
+
+        // 显示自定义 tooltip
+        this.setData({
+          showTooltip: true,
+          tooltipData: {
+            ageLabel: ageLabel,
+            items: items,
+            x: tooltipX,
+            y: tooltipY
+          }
+        });
+      }).exec();
+    } catch (e) {
+      console.error('处理图表触摸事件失败:', e);
+    }
+  },
+
+  // 关闭 Tooltip 弹窗
+  closeTooltip() {
+    this.setData({
+      showTooltip: false,
+      tooltipData: {
+        ageLabel: '',
+        items: []
+      }
+    });
+  },
+
+  // 阻止事件冒泡
+  stopPropagation() {
+    // 空函数，用于阻止点击弹窗内容时关闭弹窗
+  },
+
   // 处理生长记录数据，转换为图表所需格式
   processGrowthRecordsToChartData(records) {
     console.log('开始处理生长记录数据:', records);
@@ -432,190 +538,12 @@ Page({
 
     try {
       const option = this.buildHeightChartOption({
-        measurements,
+        measurements: measurements,
         name: childName
       });
       this.chart.setOption(option);
-      this.childSeriesIndex = option.series.length - 1;
-      this.childHeightData = option.series[this.childSeriesIndex]
-        ? option.series[this.childSeriesIndex].data
-        : [];
-      this.registerChartClickHandler();
     } catch (error) {
       console.error('Height页面渲染图表失败:', error);
-    }
-  },
-
-  registerChartClickHandler() {
-    if (!this.chart) {
-      return;
-    }
-    if (this.chartClickHandler) {
-      this.chart.off('click', this.chartClickHandler);
-    }
-    this.chartClickHandler = (params) => {
-      if (!params || !params.data || params.seriesName.indexOf('身高') === -1) {
-        return;
-      }
-      const dataItem = params.data;
-      const heightVal = typeof dataItem.value === 'number' ? dataItem.value.toFixed(1) : '--';
-      const weightVal = typeof dataItem.weight === 'number' ? dataItem.weight.toFixed(1) : null;
-
-      this.setData({
-        selectedPoint: {
-          ageLabel: (() => {
-            const ageVal = QUARTER_AGES[params.dataIndex];
-            return typeof ageVal === 'number' ? `${ageVal.toFixed(2)}岁` : '';
-          })(),
-          dateLabel: dataItem.dateLabel || '',
-          height: heightVal,
-          weight: weightVal
-        }
-      });
-    };
-    this.chart.on('click', this.chartClickHandler);
-  },
-
-  handleChartTouch(x, y, chartInstance) {
-    const chart = chartInstance || this.chart;
-    if (!chart || !this.childHeightData || !Array.isArray(this.childHeightData)) {
-      return;
-    }
-
-    try {
-      if (chart.containPixel && !chart.containPixel({ xAxisIndex: 0, yAxisIndex: 0 }, [x, y])) {
-        return;
-      }
-    } catch (error) {
-      console.warn('containPixel 检测失败:', error);
-    }
-
-    let ageValue = null;
-    try {
-      const axisValue = chart.convertFromPixel
-        ? chart.convertFromPixel({ xAxisIndex: 0 }, [x, y])
-        : null;
-      const parsedValue = Array.isArray(axisValue) ? axisValue[0] : axisValue;
-      ageValue = typeof parsedValue === 'string' ? parseFloat(parsedValue) : parsedValue;
-    } catch (error) {
-      console.warn('convertFromPixel 失败:', error);
-    }
-
-    let approxIdx = this.pickMeasurementIndexByAge(ageValue);
-    if ((approxIdx === null || approxIdx === undefined) && chart) {
-      approxIdx = this.findNearestPointByPixel(chart, x, y);
-    }
-    if (approxIdx === null || approxIdx === undefined) {
-      return;
-    }
-
-    const targetPoint = this.childHeightData[approxIdx];
-    if (!targetPoint || typeof targetPoint.value !== 'number') {
-      return;
-    }
-
-    const selectedPoint = {
-      ageLabel: QUARTER_AGES[approxIdx] ? `${QUARTER_AGES[approxIdx].toFixed(2)}岁` : '',
-      dateLabel: targetPoint.dateLabel || '',
-      height: targetPoint.value.toFixed(1),
-      weight: typeof targetPoint.weight === 'number' && !isNaN(targetPoint.weight)
-        ? targetPoint.weight.toFixed(1)
-        : null
-    };
-
-    this.setData({ selectedPoint });
-  },
-
-  pickMeasurementIndexByAge(ageValue) {
-    if (typeof ageValue !== 'number' || isNaN(ageValue)) {
-      return this.findNearestMeasurementIndex(null);
-    }
-
-    let closestIdx = -1;
-    let minDiff = Number.MAX_VALUE;
-    QUARTER_AGES.forEach((age, idx) => {
-      const diff = Math.abs(age - ageValue);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIdx = idx;
-      }
-    });
-
-    return this.findNearestMeasurementIndex(closestIdx);
-  },
-
-  findNearestMeasurementIndex(baseIdx) {
-    if (!Array.isArray(this.childHeightData) || this.childHeightData.length === 0) {
-      return null;
-    }
-
-    if (baseIdx === null || baseIdx === undefined || baseIdx < 0 || baseIdx >= QUARTER_AGES.length) {
-      // 找到第一个有数据的点
-      const firstIdx = this.childHeightData.findIndex(item => item && typeof item.value === 'number');
-      return firstIdx >= 0 ? firstIdx : null;
-    }
-
-    if (this.childHeightData[baseIdx] && typeof this.childHeightData[baseIdx].value === 'number') {
-      return baseIdx;
-    }
-
-    let offset = 1;
-    while (baseIdx - offset >= 0 || baseIdx + offset < this.childHeightData.length) {
-      const leftIdx = baseIdx - offset;
-      const rightIdx = baseIdx + offset;
-      if (leftIdx >= 0) {
-        const left = this.childHeightData[leftIdx];
-        if (left && typeof left.value === 'number') {
-          return leftIdx;
-        }
-      }
-      if (rightIdx < this.childHeightData.length) {
-        const right = this.childHeightData[rightIdx];
-        if (right && typeof right.value === 'number') {
-          return rightIdx;
-        }
-      }
-      offset++;
-    }
-
-    return null;
-  },
-
-  findNearestPointByPixel(chart, x, y) {
-    if (!chart || !Array.isArray(this.childHeightData)) {
-      return null;
-    }
-    let closestIdx = null;
-    let minDistance = Number.MAX_VALUE;
-    this.childHeightData.forEach((point, idx) => {
-      if (!point || typeof point.value !== 'number' || typeof QUARTER_AGES[idx] !== 'number') {
-        return;
-      }
-      try {
-        const pixelX = chart.convertToPixel({ xAxisIndex: 0 }, QUARTER_AGES[idx]);
-        const pixelY = chart.convertToPixel({ yAxisIndex: 0 }, point.value);
-        if (typeof pixelX !== 'number' || typeof pixelY !== 'number') {
-          return;
-        }
-        const dx = pixelX - x;
-        const dy = pixelY - y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < minDistance) {
-          minDistance = dist;
-          closestIdx = idx;
-        }
-      } catch (error) {
-        console.warn('convertToPixel 失败:', error);
-      }
-    });
-
-    return minDistance <= 40 ? closestIdx : null;
-  },
-
-  onUnload() {
-    if (this.chart && this.chartClickHandler) {
-      this.chart.off('click', this.chartClickHandler);
-      this.chartClickHandler = null;
     }
   },
 
@@ -704,13 +632,11 @@ Page({
 
     return {
       tooltip: {
-        trigger: 'axis',
-        triggerOn: 'mousemove|click|touchstart|touchmove',
-        alwaysShowContent: true,
+        show: true,
+        trigger: 'axis', // 按轴触发，一次显示多条曲线的数据
         confine: true,
-        enterable: true,
         axisPointer: {
-          type: 'line',
+          type: 'cross',
           snap: true
         },
         backgroundColor: 'rgba(50, 50, 50, 0.85)',
@@ -718,37 +644,37 @@ Page({
         padding: [8, 12],
         renderMode: 'richText',
         formatter: function (params) {
-          let result = '';
-          if (params && params.length > 0) {
-            const ageIndex = params[0].dataIndex;
-            const ageLabel = QUARTER_AGES[ageIndex] ? `${QUARTER_AGES[ageIndex].toFixed(2)}岁` : '';
-            result = ageLabel + '\n';
-            params.forEach(param => {
-              if (param.value === null || param.value === undefined) {
-                return;
-              }
-              const dataValue = (param.data && typeof param.data === 'object' && typeof param.data.value === 'number')
-                ? param.data.value
-                : (typeof param.value === 'number' ? param.value : null);
-              if (dataValue === null || dataValue === undefined || isNaN(dataValue)) {
-                return;
-              }
-              if (param.seriesName.indexOf('身高') > -1 && param.data && typeof param.data === 'object') {
-                const dateLabel = param.data.dateLabel ? `测量日期：${param.data.dateLabel}` : '';
-                const hasWeight = typeof param.data.weight === 'number' && !isNaN(param.data.weight);
-                const weightLabel = hasWeight ? `体重：${param.data.weight.toFixed(1)}kg` : '';
-                result += `${param.seriesName}: ${dataValue.toFixed(1)}cm\n`;
-                if (dateLabel) {
-                  result += `${dateLabel}\n`;
-                }
-                if (weightLabel) {
-                  result += `${weightLabel}\n`;
-                }
-              } else {
-                result += `${param.seriesName}: ${dataValue.toFixed(1)}cm\n`;
-              }
-            });
+          console.log('height 图表 tooltip formatter 调用, params:', params);
+          if (!params || !params.length) {
+            return '';
           }
+
+          const dataIndex = params[0].dataIndex;
+          const ageLabel = QUARTER_AGES[dataIndex] ? `${QUARTER_AGES[dataIndex].toFixed(2)}岁` : '';
+          let result = ageLabel ? ageLabel + '\n' : '';
+
+          params.forEach(param => {
+            if (param.value === null || param.value === undefined) return;
+
+            const isChild = param.seriesName.indexOf('身高') > -1 && param.data && typeof param.data === 'object';
+            const dataValue = (isChild && typeof param.data.value === 'number')
+              ? param.data.value
+              : (typeof param.value === 'number' ? param.value : null);
+
+            if (dataValue === null || dataValue === undefined || isNaN(dataValue)) return;
+
+            if (isChild) {
+              const dateLabel = param.data.dateLabel ? `测量日期：${param.data.dateLabel}` : '';
+              const hasWeight = typeof param.data.weight === 'number' && !isNaN(param.data.weight);
+              const weightLabel = hasWeight ? `体重：${param.data.weight.toFixed(1)}kg` : '';
+              result += `${param.seriesName}: ${dataValue.toFixed(1)}cm\n`;
+              if (dateLabel) result += `${dateLabel}\n`;
+              if (weightLabel) result += `${weightLabel}\n`;
+            } else {
+              result += `${param.seriesName}: ${dataValue.toFixed(1)}cm\n`;
+            }
+          });
+
           return result;
         }
       },

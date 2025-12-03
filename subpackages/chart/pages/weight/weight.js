@@ -1,9 +1,8 @@
-const { request } = require("../../utils/request");
-const childApi = require("../../api/child");
-const growthApi = require("../../api/growth");
-import uCharts from '../../js_sdk/u-charts/u-charts.js';
+const { request } = require("../../../../utils/request");
+const childApi = require("../../../../api/child");
+const growthApi = require("../../../../api/growth");
+const echarts = require('../../ec-canvas/echarts.js');
 const app = getApp();
-var uChartsInstance = {};
 
 // 生成0.5岁间隔的年龄点：2.0, 2.5, 3.0, 3.5, ..., 18.0
 const QUARTER_AGES = [];
@@ -56,16 +55,20 @@ Page({
     showModal: false,
     form: {},
     userType : app.globalData.userType || "parent",
-    cWidth: 750,
-    cHeight: 500
+    ec: {
+      onInit: null
+    },
+    showTooltip: false,
+    tooltipData: {
+      ageLabel: '',
+      items: [],
+      x: 0,
+      y: 0
+    }
   },
   onReady() {
-    // 获取屏幕宽度，让图表占满整个容器宽度
-    const screenWidth = wx.getSystemInfoSync().windowWidth;
-    const cWidth = screenWidth - 40; // 减去容器的padding
-    // 增加图表高度
-    const cHeight = 500;
-    this.setData({ cWidth, cHeight });
+    // 初始化图表（ECharts）
+    this.initChart();
   }, 
   onLoad(options) {
     // 从storage获取第一个孩子
@@ -87,26 +90,56 @@ Page({
   },
 
 
-  // 直接使用实际数据绘制图表的函数
-  drawChartWithData(records) {
-    console.log('Weight页面使用实际数据绘制图表:', records);
-    
-    if (!records || records.length === 0) {
-      console.log('Weight页面没有数据可绘制');
-      return;
-    }
-    
-    // 处理实际数据
-    const chartData = this.processGrowthRecordsToChartData(records);
-    console.log('Weight页面处理后的图表数据:', chartData);
-    
-    // 设置数据并绘制图表
-    this.setData({ pltData: chartData });
-    
-    // 延迟绘制图表，确保数据已设置
-    setTimeout(() => {
-      this.getServerData(chartData);
-    }, 100);
+  // 初始化 ECharts 图表
+  initChart() {
+    const that = this;
+    this.setData({
+      ec: {
+        onInit: function (canvas, width, height, dpr) {
+          // 为 canvas 添加必要的方法（防止 echarts 调用不存在的方法）
+          if (!canvas.addEventListener) {
+            canvas.addEventListener = function() {};
+          }
+          if (!canvas.removeEventListener) {
+            canvas.removeEventListener = function() {};
+          }
+          if (!canvas.setChart) {
+            canvas.setChart = function(chart) {
+              this._chart = chart;
+            };
+          }
+          
+          // 初始化 echarts
+          const chart = echarts.init(canvas, null, {
+            width: width,
+            height: height,
+            devicePixelRatio: dpr
+          });
+          
+          // 建立 canvas 和 chart 的关联
+          canvas.setChart(chart);
+          
+          that.chart = chart;
+          
+          // 等待数据加载后再渲染
+          setTimeout(() => {
+            if (that.data.pltData && (that.data.pltData.x_data || that.data.pltData.measurements)) {
+              that.renderCharts(that.data.pltData);
+            }
+          }, 100);
+          
+          return chart;
+        },
+        // 自定义触摸结束回调：根据点击位置计算并显示该年龄点的多条曲线数据
+        onTouchEnd: function (x, y, chart) {
+          if (!chart) {
+            chart = that.chart;
+          }
+          if (!chart) return;
+          that.handleChartTouch(x, y, chart);
+        }
+      }
+    });
   },
 
   fetchChildInfo() {
@@ -197,18 +230,14 @@ Page({
           const chartData = this.processGrowthRecordsToChartData(res.data);
           console.log('Weight页面处理后的图表数据:', chartData);
           this.setData({ pltData: chartData });
-          
-          // 延迟绘制图表，确保数据已设置（即使没有实际数据，也会显示标准曲线）
-          setTimeout(() => {
-            this.getServerData(chartData);
-          }, 100);
+          this.renderCharts(chartData);
         }
       }).catch(error => {
         console.error('Weight页面获取生长记录失败:', error);
         // 即使获取失败，也显示标准曲线
-        setTimeout(() => {
-          this.getServerData({ x_data: [], chirld_weight: [], name: this.data.child.name || '儿童' });
-        }, 100);
+        const chartData = { x_data: [], chirld_weight: [], name: this.data.child.name || '儿童' };
+        this.setData({ pltData: chartData });
+        this.renderCharts(chartData);
       })
     }
 
@@ -439,227 +468,271 @@ Page({
     };
   },
 
-  // 生成标准生长曲线数据（示例实现，实际应该使用真实的标准数据）
-  generateStandardCurve(ages, type, percentile) {
-    return ages.map(age => {
-      const ageNum = parseFloat(age);
-      if (type === 'height') {
-        // 示例身高曲线公式（实际应该使用WHO标准数据）
-        if (percentile === 3) return 45 + ageNum * 6; // 3%线
-        if (percentile === 50) return 50 + ageNum * 7; // 50%线
-        if (percentile === 97) return 55 + ageNum * 8; // 97%线
-      } else if (type === 'weight') {
-        // 示例体重曲线公式（实际应该使用WHO标准数据）
-        if (percentile === 3) return 3 + ageNum * 1.5; // 3%线
-        if (percentile === 50) return 3.5 + ageNum * 2; // 50%线
-        if (percentile === 97) return 4 + ageNum * 2.5; // 97%线
-      }
-      return 0;
-    });
-  },
-  getServerData(pltData) {
-    console.log('Weight页面开始绘制图表，数据:', pltData);
-    
-    // 使用标准年龄点作为X轴
-    const categories = QUARTER_AGES.map(age => age.toFixed(2));
-    
-    // 构建标准曲线数据
-    const standardSeries = PERCENTILE_ORDER.map(percentile => {
-      const data = WEIGHT_PERCENTILES[percentile].map((value, index) => {
-        // 对于标准曲线，每个年龄点都有对应的值
-        return value;
-      });
-      return {
-        name: `${percentile}百分位`,
-        color: PERCENTILE_COLORS[percentile],
-        data: data
-      };
-    });
-    
-    // 添加实际数据（如果有）
-    const actualSeries = [];
-    if (pltData && pltData.x_data && pltData.x_data.length > 0 && pltData.chirld_weight && pltData.chirld_weight.length > 0) {
-      // 将实际数据映射到标准年龄点
-      const actualData = QUARTER_AGES.map(age => {
-        // 找到最接近的实际数据点
-        let closestValue = null;
-        let minDiff = Infinity;
-        
-        for (let i = 0; i < pltData.x_data.length; i++) {
-          const diff = Math.abs(pltData.x_data[i] - age);
-          if (diff < minDiff) {
-            minDiff = diff;
-            closestValue = pltData.chirld_weight[i];
-          }
-        }
-        
-        // 如果差异太大（超过0.5岁），则不显示该点
-        return minDiff <= 0.5 ? closestValue : null;
-      });
-      
-      actualSeries.push({
-        name: (pltData.name || '儿童') + "体重",
-        color: "#ff6b6b",
-        data: actualData
-      });
+  // 使用 ECharts 渲染体重曲线
+  renderCharts(pltData = {}) {
+    if (!this.chart) {
+      // 图表未初始化时延迟重试
+      setTimeout(() => {
+        this.renderCharts(pltData);
+      }, 100);
+      return;
     }
-    
-    // 合并标准曲线和实际数据（标准曲线在前，实际数据在后）
-    const allSeries = [...standardSeries, ...actualSeries];
-    
-    let res_weight = {
-      categories: categories,
-      series: allSeries
-    };
-    
-    console.log('Weight页面体重图表数据:', res_weight);
-    
-    this.drawCharts('NwbCBhcNOuQXlMCxznViehwgujHjDjVo-weight', res_weight, "weight");
+
+    try {
+      const option = this.buildWeightChartOption(pltData);
+      this.chart.setOption(option);
+    } catch (e) {
+      console.error('Weight页面渲染图表失败:', e);
+    }
   },
 
-  drawCharts(id, data, t) {
-    const ctx = wx.createCanvasContext(id, this);
-    console.log('Weight页面绘制图表:', t, '数据:', data);
-    
-    // 检查数据是否为空
-    if (!data.categories || data.categories.length === 0) {
-      console.error('Weight页面图表数据为空，无法绘制');
-      return;
-    }
-    
-    if (!data.series || data.series.length === 0) {
-      console.error('Weight页面图表系列数据为空，无法绘制');
-      return;
-    }
-    
-    // 检查标准曲线数据（至少应该有一条标准曲线）
-    const hasStandardData = data.series.some(series => series.data && series.data.length > 0);
-    if (!hasStandardData) {
-      console.error('Weight页面没有有效的图表数据，无法绘制');
-      return;
-    }
-    
-    // 固定图表宽度，不动态调整
-    const dataCount = data.categories.length;
-    let chartWidth = this.data.cWidth; // 始终使用屏幕宽度
-    let enableScroll = false;
-    
-    // 如果数据点较多，启用滚动但保持固定宽度
-    if (dataCount > 6) {
-      enableScroll = true;
-    }
-    
-    console.log('Weight页面数据点数量:', dataCount, '图表宽度:', chartWidth, '启用滚动:', enableScroll);
-    
-    // 为体重图表设置合理的Y轴范围（根据标准曲线数据范围）
-    let yAxisMin, yAxisMax, yAxisSplitNumber;
-    if (t === "weight") {
-      // 体重图表显示0-85kg范围（覆盖标准曲线最大值80kg）
-      yAxisMin = 0;
-      yAxisMax = 85;
-      yAxisSplitNumber = 17; // 每5kg一个刻度
-    } else {
-      // 身高保持原有逻辑
-      yAxisMin = 0;
-      yAxisMax = 200;
-      yAxisSplitNumber = 20;
-    }
-    
-    // 生成X轴标签（只显示整岁数）
-    const xAxisLabels = QUARTER_AGES.map((age, index) => {
-      // 只显示整岁数（2, 3, 4, ..., 18）
-      if (age % 1 === 0) {
-        return `${age}岁`;
-      }
-      return ''; // 非整岁数不显示标签
-    });
-    
-    console.log('体重图表配置:', { yAxisMin, yAxisMax, yAxisSplitNumber, dataCount });
-    
-    const chartConfig = {
-      type: "line",
-      context: ctx,
-      width: chartWidth,
-      height: this.data.cHeight,
-      categories: data.categories,
-      series: data.series,
-      animation: true,
-      background: "#FFFFFF",
-      color: ["#4facfe", "#ff6b6b", "#4ecdc4", "#45b7d1", "#96ceb4", "#feca57", "#ff9ff3", "#54a0ff"],
-      padding: [15, 10, 0, 15],
-      enableScroll: enableScroll,
-      touchMoveLimit: 60, // 添加触摸移动限制
-      dataPointShape: false, // 全局关闭数据点显示，保持纯曲线
-      legend: {
-        show: true,
-        position: "bottom"
+  buildWeightChartOption(pltData) {
+    // X 轴：0.5 岁间隔
+    const xAxisData = QUARTER_AGES.map(age => age.toFixed(2));
+
+    // 百分位标准曲线
+    const percentileSeries = PERCENTILE_ORDER.map(p => ({
+      name: `${p}百分位`,
+      type: 'line',
+      data: WEIGHT_PERCENTILES[p] || [],
+      smooth: true,
+      lineStyle: {
+        width: 2,
+        color: PERCENTILE_COLORS[p] || '#cccccc'
       },
-      dataLabel: false, // 关闭数据标签，避免图表过于拥挤
-      xAxis: {
-        disableGrid: false,
-        scrollShow: enableScroll,
-        itemCount: data.categories.length,
-        boundaryGap: "justify",
-        fontSize: 10,
-        rotateLabel: false, // 年龄标签不需要旋转
-        labelCount: 33, // 显示0.5岁间隔的标签（2, 2.5, 3, 3.5, ..., 18，共33个）
-        scrollAlign: "left", // 添加滚动对齐方式
-        format: function (val, index) {
-          // 显示0.5岁间隔的标签（2, 2.5, 3, 3.5, ..., 18）
-          const age = parseFloat(val);
-          // 只显示0.5岁间隔的标签
-          if (age % 0.5 === 0) {
-            return `${age}岁`;
+      symbol: 'none',
+      showSymbol: false
+    }));
+
+    // 儿童体重数据映射到最近的 0.5 岁点
+    // 注意：非空点数量应该不超过实际记录数量，因此按“记录 -> 轴刻度”的方式映射
+    const childWeightData = new Array(QUARTER_AGES.length).fill(null);
+    if (pltData && Array.isArray(pltData.x_data) && Array.isArray(pltData.chirld_weight)) {
+      pltData.x_data.forEach((ageVal, i) => {
+        const weightVal = pltData.chirld_weight[i];
+        const numAge = parseFloat(ageVal);
+        const numWeight = parseFloat(weightVal);
+        if (isNaN(numAge) || isNaN(numWeight)) {
+          return;
+        }
+
+        // 只处理 2~18 岁之间的数据
+        if (numAge < 2 || numAge > 18) {
+          return;
+        }
+
+        // 找到距离当前年龄最近的 0.5 岁刻度
+        let closestIdx = 0;
+        let minDiff = Math.abs(numAge - QUARTER_AGES[0]);
+        QUARTER_AGES.forEach((age, idx) => {
+          const diff = Math.abs(numAge - age);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestIdx = idx;
           }
-          return '';
+        });
+
+        // 只在误差不超过 0.5 岁时落点
+        if (minDiff <= 0.5) {
+          childWeightData[closestIdx] = {
+            value: parseFloat(numWeight.toFixed(1))
+          };
+        }
+      });
+    }
+
+    const series = [
+      ...percentileSeries,
+      {
+        name: `${pltData.name || this.data.child.name || '儿童'}体重`,
+        type: 'line',
+        data: childWeightData,
+        smooth: true,
+        lineStyle: {
+          width: 4,
+          color: '#FF6B6B'
+        },
+        symbol: 'circle',
+        symbolSize: 6,
+        itemStyle: {
+          color: '#FF6B6B'
+        }
+      }
+    ];
+
+    return {
+      tooltip: {
+        show: true,
+        trigger: 'axis',
+        confine: true,
+        axisPointer: {
+          type: 'cross',
+          snap: true
+        },
+        backgroundColor: 'rgba(50, 50, 50, 0.85)',
+        borderWidth: 0,
+        padding: [8, 12],
+        renderMode: 'richText',
+        formatter: function (params) {
+          console.log('weight 图表 tooltip formatter 调用, params:', params);
+          if (!params || !params.length) {
+            return '';
+          }
+
+          const dataIndex = params[0].dataIndex;
+          const ageLabel = QUARTER_AGES[dataIndex] ? `${QUARTER_AGES[dataIndex].toFixed(2)}岁` : '';
+          let result = ageLabel ? ageLabel + '\n' : '';
+
+          params.forEach(param => {
+            if (param.value === null || param.value === undefined) return;
+
+            const isChild = param.seriesName.indexOf('体重') > -1 && param.data && typeof param.data === 'object';
+            const dataValue = (isChild && typeof param.data.value === 'number')
+              ? param.data.value
+              : (typeof param.value === 'number' ? param.value : null);
+
+            if (dataValue === null || dataValue === undefined || isNaN(dataValue)) return;
+
+            result += `${param.seriesName}: ${dataValue.toFixed(1)}kg\n`;
+          });
+
+          return result;
+        }
+      },
+      legend: {
+        data: series.map(s => s.name),
+        bottom: 0,
+        type: 'scroll'
+      },
+      grid: {
+        left: '10%',
+        right: '10%',
+        bottom: '15%',
+        top: '10%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: xAxisData,
+        axisLabel: {
+          formatter: function (value, index) {
+            const num = parseFloat(value);
+            if (isNaN(num)) {
+              return '';
+            }
+            if (num % 1 === 0) {
+              const label = `${Math.floor(num)}`;
+              // 只有最后一个整数刻度显示“岁”，其余只显示数字
+              const LAST_INDEX = xAxisData.length - 1;
+              return index === LAST_INDEX ? `${label}岁` : label;
+            }
+            return '';
+          },
+          interval: 0,
+          rotate: 0
         }
       },
       yAxis: {
-        gridType: "dash",
-        dashLength: 2,
-        title: "体重(kg)",
-        min: yAxisMin,
-        max: yAxisMax,
-        splitNumber: yAxisSplitNumber,
-        format: function (val) {
-          return val + "kg";
+        type: 'value',
+        name: '体重(kg)',
+        min: 0,
+        max: 85,
+        splitNumber: 17,
+        axisLabel: {
+          formatter: '{value}kg'
         }
       },
-      extra: {
-        line: {
-          type: "curve",
-          width: 3,
-          activeType: "hollow",
-          pointShow: false // 不显示数据点，只显示平滑曲线
-        },
-        tooltip: {
-          showBox: true,
-          showArrow: true,
-          showCategory: true,
-          borderWidth: 0,
-          borderRadius: 0,
-          borderColor: "#000000",
-          bgColor: "#000000",
-          gridType: "solid",
-          fontColor: "#FFFFFF"
-        }
-      }
+      series
     };
-    
-    uChartsInstance[id] = new uCharts(chartConfig);
-    console.log('Weight页面图表绘制完成:', t);
   },
-  touchstart(e){
-    uChartsInstance[e.target.id].scrollStart(e);
+
+  // 处理图表触摸事件：根据点击的横坐标，计算该年龄点所有曲线的数据并通过自定义 tooltip 显示
+  handleChartTouch(x, y, chart) {
+    try {
+      const option = chart.getOption() || {};
+      const seriesArr = option.series || [];
+      if (!seriesArr.length) return;
+
+      const pointInPixel = [x, y];
+      if (!chart.containPixel || !chart.convertFromPixel) {
+        return;
+      }
+
+      // 使用最后一条系列（儿童体重线）作为基准系列
+      const baseSeriesIndex = seriesArr.length - 1;
+      if (!chart.containPixel({ gridIndex: 0 }, pointInPixel)) {
+        return;
+      }
+      const dataIndexArr = chart.convertFromPixel({ seriesIndex: baseSeriesIndex }, pointInPixel);
+      const dataIndex = Array.isArray(dataIndexArr) ? dataIndexArr[0] : dataIndexArr;
+      if (dataIndex === undefined || dataIndex === null || isNaN(dataIndex)) {
+        return;
+      }
+
+      // 获取图表容器的位置，计算 tooltip 的绝对位置
+      const query = wx.createSelectorQuery().in(this);
+      query.select('.chart-section').boundingClientRect((rect) => {
+        if (!rect) return;
+        
+        const ageLabel = QUARTER_AGES[dataIndex] ? `${QUARTER_AGES[dataIndex].toFixed(2)}岁` : '';
+        const items = [];
+
+        seriesArr.forEach((s) => {
+          const raw = (s.data || [])[dataIndex];
+          if (raw === null || raw === undefined) return;
+          let v;
+          
+          if (typeof raw === 'object') {
+            v = typeof raw.value === 'number' ? raw.value : null;
+          } else {
+            v = typeof raw === 'number' ? raw : null;
+          }
+          if (v === null || v === undefined || isNaN(v)) return;
+          
+          items.push({
+            name: s.name,
+            value: `${v.toFixed(1)}kg`
+          });
+        });
+
+        if (!items.length) return;
+
+        // 计算 tooltip 位置（相对于页面）
+        const tooltipX = rect.left + x;
+        const tooltipY = rect.top + y;
+
+        // 显示自定义 tooltip
+        this.setData({
+          showTooltip: true,
+          tooltipData: {
+            ageLabel: ageLabel,
+            items: items,
+            x: tooltipX,
+            y: tooltipY
+          }
+        });
+      }).exec();
+    } catch (e) {
+      console.error('处理图表触摸事件失败:', e);
+    }
   },
-  touchmove(e){
-    uChartsInstance[e.target.id].scroll(e);
+
+  // 关闭 Tooltip 弹窗
+  closeTooltip() {
+    this.setData({
+      showTooltip: false,
+      tooltipData: {
+        ageLabel: '',
+        items: []
+      }
+    });
   },
-  touchend(e){
-    uChartsInstance[e.target.id].scrollEnd(e);
-    uChartsInstance[e.target.id].touchLegend(e);
-    uChartsInstance[e.target.id].showToolTip(e);
+
+  // 阻止事件冒泡
+  stopPropagation() {
+    // 空函数，用于阻止点击弹窗内容时关闭弹窗
   }
 
-
 });
+
