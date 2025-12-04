@@ -54,7 +54,7 @@
         </view>
 
         <view class="report-detail" wx:if="{{item.expanded}}">
-          <rich-text class="markdown-body" nodes="{{item.htmlContent}}"></rich-text>
+          <rich-text class="markdown-body" nodes="{{item.htmlContent}}" type="html"></rich-text>
         </view>
       </view>
     </block>

@@ -279,8 +279,9 @@
   font-weight: 600;
 }
 
+/* rich-text 组件对 CSS 支持有限，样式已通过内联样式添加到 HTML 中 */
 .markdown-body h1 {
-  font-size: 22rpx;
+  font-size: 16rpx;
 }
 
 .markdown-body h2,
@@ -288,12 +289,12 @@
 .markdown-body h4,
 .markdown-body h5,
 .markdown-body h6 {
-  font-size: 16rpx;
+  font-size: 10rpx;
 }
 
 .markdown-body p {
   color: #4a5568;
-  font-size: 24rpx;
+  font-size: 18rpx;
   line-height: 1.6;
   margin-bottom: 12rpx;
 }
@@ -306,7 +307,7 @@
 
 .markdown-body li {
   color: #4a5568;
-  font-size: 26rpx;
+  font-size: 20rpx;
   line-height: 1.6;
   margin-bottom: 6rpx;
 }
@@ -319,7 +320,7 @@
   background: #edf2f7;
   padding: 4rpx 8rpx;
   border-radius: 6rpx;
-  font-size: 24rpx;
+  font-size: 18rpx;
 }
 
 .markdown-body pre {

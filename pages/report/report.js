@@ -182,12 +182,44 @@ Page({
 
   // 生成 HTML 内容
   getReportHtml(content) {
-    if (!content) return '<p>暂无报告内容</p>';
+    if (!content) return '<p style="font-size: 12px; color: #4a5568;">暂无报告内容</p>';
     try {
-      return parseMarkdownAdvanced(content);
+      let html = parseMarkdownAdvanced(content);
+      
+      // 去掉标题中的 "#" 符号（处理 Markdown 解析后可能残留的 #）
+      // 匹配 <h1># 标题</h1> 或 <h1>标题 #</h1> 等情况
+      html = html
+        // 去掉标题开始处的 # 符号
+        .replace(/<h([1-6])[^>]*>\s*#+\s*/gi, '<h$1>')
+        // 去掉标题内容中的 # 符号（但保留标签）
+        .replace(/<h([1-6])[^>]*>([^<]*?)#+([^<]*?)<\/h([1-6])>/gi, (match, hNum, before, after, closeNum) => {
+          // 合并前后内容，去掉 # 符号
+          const text = (before + after).replace(/#+/g, '').trim();
+          return `<h${hNum}>${text}</h${closeNum}>`;
+        })
+        // 去掉标题结束处的 # 符号
+        .replace(/#+\s*<\/h([1-6])>/gi, '</h$1>');
+      
+      // 为 HTML 标签添加内联样式（rich-text 组件需要使用 px 单位）
+      // 使用合理的 px 值（比 rpx 稍小，但保证可读性）
+      html = html
+        // h1 标题 (16rpx → 12px)
+        .replace(/<h1([^>]*)>/gi, '<h1$1 style="font-size: 18px; color: #1e293b; font-weight: 600; margin: 8px 0 4px; display: block;">')
+        // h2-h6 标题 (10rpx → 8px)
+        .replace(/<h([2-6])([^>]*)>/gi, '<h$1$2 style="font-size: 15px; color: #1e293b; font-weight: 600; margin: 6px 0 3px; display: block;">')
+        // 段落 (18rpx → 12px)
+        .replace(/<p([^>]*)>/gi, '<p$1 style="font-size: 14px; color: #4a5568; line-height: 1.6; margin-bottom: 8px; display: block;">')
+        // 列表项 (20rpx → 14px)
+        .replace(/<li([^>]*)>/gi, '<li$1 style="font-size: 14px; color: #4a5568; line-height: 1.6; margin-bottom: 4px; display: list-item;">')
+        // 代码 (18rpx → 12px)
+        .replace(/<code([^>]*)>/gi, '<code$1 style="font-size: 14px; background: #edf2f7; padding: 2px 6px; border-radius: 3px; display: inline;">')
+        // 粗体
+        .replace(/<strong([^>]*)>/gi, '<strong$1 style="color: #2d3748; font-weight: 600;">');
+      
+      return html;
     } catch (error) {
       console.error('Markdown解析失败:', error);
-      return `<p>${content}</p>`;
+      return `<p style="font-size: 12px; color: #4a5568;">${content}</p>`;
     }
   }
 });
